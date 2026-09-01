@@ -1,3 +1,4 @@
+import { AvatarMenu } from './AvatarMenu';
 import { ThemeToggle } from './ThemeToggle';
 
 export function TopBar() {
@@ -7,7 +8,10 @@ export function TopBar() {
         <span className="topbar-logo">N</span>
         <span className="topbar-title">Notebook</span>
       </div>
-      <ThemeToggle />
+      <div className="topbar-actions">
+        <ThemeToggle />
+        <AvatarMenu />
+      </div>
     </header>
   );
 }

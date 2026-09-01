@@ -1,6 +1,8 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { AuthPage } from '../pages/AuthPage';
+import { GuestRoute } from './GuestRoute';
+import { ProtectedRoute } from './ProtectedRoute';
 
 function ComingSoon({ title }: { title: string }) {
   return (
@@ -15,9 +17,16 @@ export function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/login" replace />} />
-      <Route path="/login" element={<AuthPage />} />
-      <Route path="/signup" element={<AuthPage />} />
-      <Route path="/notes" element={<ComingSoon title="All notes" />} />
+
+      <Route element={<GuestRoute />}>
+        <Route path="/login" element={<AuthPage />} />
+        <Route path="/signup" element={<AuthPage />} />
+      </Route>
+
+      <Route element={<ProtectedRoute />}>
+        <Route path="/notes" element={<ComingSoon title="All notes" />} />
+      </Route>
+
       <Route path="*" element={<ComingSoon title="Not found" />} />
     </Routes>
   );

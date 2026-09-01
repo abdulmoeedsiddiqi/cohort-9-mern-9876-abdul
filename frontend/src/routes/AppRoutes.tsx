@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { DashboardLayout } from '../components/layout/DashboardLayout';
 import { AuthPage } from '../pages/AuthPage';
+import { NoteEditorPage } from '../pages/NoteEditorPage';
 import { NotesPage } from '../pages/NotesPage';
 import { GuestRoute } from './GuestRoute';
 import { ProtectedRoute } from './ProtectedRoute';
@@ -31,9 +32,9 @@ export function AppRoutes() {
           <Route path="/notes/pinned" element={<ComingSoon title="Pinned" />} />
           <Route path="/notes/video" element={<ComingSoon title="Video notes" />} />
           <Route path="/notes/trash" element={<ComingSoon title="Trash" />} />
-          <Route path="/notes/new" element={<ComingSoon title="New note" />} />
-          <Route path="/notes/:id" element={<ComingSoon title="Note" />} />
         </Route>
+        <Route path="/notes/new" element={<NoteEditorPage />} />
+        <Route path="/notes/:id" element={<NoteEditorPage />} />
       </Route>
 
       <Route path="*" element={<ComingSoon title="Not found" />} />

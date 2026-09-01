@@ -1,4 +1,5 @@
 import cookieParser from 'cookie-parser';
+import cors from 'cors';
 import express, { Express, Request, Response } from 'express';
 
 import { env } from './config/env';
@@ -11,6 +12,7 @@ export function createApp(): Express {
   const app = express();
 
   app.use(httpLogger);
+  app.use(cors({ origin: env.corsOrigin, credentials: true }));
   app.use(express.json());
   app.use(cookieParser());
 

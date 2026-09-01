@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum NoteType {
+  TEXT
+  VIDEO
+  MIXED
+}
+
+enum AssetKind {
+  VIDEO
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  avatarColor  String?
+  themePref    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  notes Note[]
+
+  @@map("users")
+}
+
+model Note {
+  id               String    @id @default(uuid())
+  userId           String
+  title            String
+  content          Json?
+  type             NoteType  @default(TEXT)
+  color            String    @default("yellow")
+  pinned           Boolean   @default(false)
+  wordCount        Int       @default(0)
+  summary          String?
+  summaryUpdatedAt DateTime?
+  deletedAt        DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  user   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assets NoteAsset[]
+
+  @@index([userId])
+  @@index([userId, deletedAt])
+  @@map("notes")
+}
+
+model NoteAsset {
+  id            String    @id @default(uuid())
+  noteId        String
+  kind          AssetKind @default(VIDEO)
+  filePath      String
+  mimeType      String
+  durationSec   Int?
+  thumbnailPath String?
+  sizeBytes     Int?
+  createdAt     DateTime  @default(now())
+
+  note Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@index([noteId])
+  @@map("note_assets")
+}

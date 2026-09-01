@@ -9,12 +9,17 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "lint": "eslint \"src/**/*.ts\"",
-    "format": "prettier --write \"src/**/*.ts\""
+    "format": "prettier --write \"src/**/*.ts\"",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio",
+    "postinstall": "prisma generate"
   },
   "engines": {
     "node": ">=18"
   },
   "dependencies": {
+    "@prisma/client": "^5.17.0",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "pino": "^9.3.1",
@@ -29,7 +34,13 @@
     "eslint-config-prettier": "^9.1.0",
     "pino-pretty": "^11.2.1",
     "prettier": "^3.3.2",
+    "prisma": "^5.17.0",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.5.3"
+  },
+  "allowScripts": {
+    "@prisma/client@5.22.0": true,
+    "prisma@5.22.0": true,
+    "@prisma/engines@5.22.0": true
   }
 }

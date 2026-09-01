@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: notes_app
+      POSTGRES_PASSWORD: notes_app
+      POSTGRES_DB: notes_app
+    ports:
+      # host 5433 avoids clashing with a locally-installed Postgres service on 5432
+      - '5433:5432'
+    volumes:
+      - notes_app_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  notes_app_postgres_data:

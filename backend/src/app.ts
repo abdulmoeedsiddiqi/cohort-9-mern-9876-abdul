@@ -7,6 +7,7 @@ import { httpLogger } from './logger/httpLogger';
 import { errorHandler } from './middleware/errorHandler';
 import { notFound } from './middleware/notFound';
 import { authRouter } from './modules/auth/auth.routes';
+import { notesRouter } from './modules/notes/notes.routes';
 
 export function createApp(): Express {
   const app = express();
@@ -21,6 +22,7 @@ export function createApp(): Express {
   });
 
   app.use('/auth', authRouter);
+  app.use('/notes', notesRouter);
 
   app.use(notFound);
   app.use(errorHandler);

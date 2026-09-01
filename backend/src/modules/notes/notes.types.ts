@@ -1,0 +1,30 @@
+import type { NoteType } from '@prisma/client';
+
+export interface CreateNoteInput {
+  title: string;
+  content?: unknown;
+  type?: NoteType;
+  color?: string;
+}
+
+export interface UpdateNoteInput {
+  title?: string;
+  content?: unknown;
+  type?: NoteType;
+  color?: string;
+  pinned?: boolean;
+}
+
+export interface NoteCounts {
+  all: number;
+  pinned: number;
+  video: number;
+  trash: number;
+}
+
+export interface PaginationMeta {
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}

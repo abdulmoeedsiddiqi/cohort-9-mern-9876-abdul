@@ -93,3 +93,46 @@ export async function softDeleteNote(
 
   await repository.softDelete(noteId);
 }
+
+export async function listTrash(
+  userId: string,
+  page: number,
+  pageSize: number,
+  repository: NotesRepository = notesRepository,
+): Promise<{ notes: Note[]; pagination: PaginationMeta }> {
+  const [notes, total] = await Promise.all([
+    repository.findManyTrashForUser({ userId, page, pageSize }),
+    repository.countTrashForUser(userId),
+  ]);
+
+  return {
+    notes,
+    pagination: { page, pageSize, total, totalPages: Math.max(1, Math.ceil(total / pageSize)) },
+  };
+}
+
+export async function restoreNote(
+  userId: string,
+  noteId: string,
+  repository: NotesRepository = notesRepository,
+): Promise<Note> {
+  const existing = await repository.findOneTrashedForUser(noteId, userId);
+  if (!existing) {
+    throw ApiError.notFound('Note not found in trash');
+  }
+
+  return repository.restore(noteId);
+}
+
+export async function purgeNote(
+  userId: string,
+  noteId: string,
+  repository: NotesRepository = notesRepository,
+): Promise<void> {
+  const existing = await repository.findOneTrashedForUser(noteId, userId);
+  if (!existing) {
+    throw ApiError.notFound('Note not found in trash');
+  }
+
+  await repository.purge(noteId);
+}

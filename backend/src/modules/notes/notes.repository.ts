@@ -56,6 +56,19 @@ export function findOneForUser(id: string, userId: string) {
   return prisma.note.findFirst({ where: { id, userId, deletedAt: null } });
 }
 
+export function findManyTrashForUser({ userId, page, pageSize }: ListOptions) {
+  return prisma.note.findMany({
+    where: { userId, deletedAt: { not: null } },
+    orderBy: { deletedAt: 'desc' },
+    skip: (page - 1) * pageSize,
+    take: pageSize,
+  });
+}
+
+export function findOneTrashedForUser(id: string, userId: string) {
+  return prisma.note.findFirst({ where: { id, userId, deletedAt: { not: null } } });
+}
+
 export function create(userId: string, data: CreateNoteData) {
   return prisma.note.create({
     data: {
@@ -82,4 +95,12 @@ export function update(id: string, data: UpdateNoteData) {
 
 export function softDelete(id: string) {
   return prisma.note.update({ where: { id }, data: { deletedAt: new Date() } });
+}
+
+export function restore(id: string) {
+  return prisma.note.update({ where: { id }, data: { deletedAt: null } });
+}
+
+export function purge(id: string) {
+  return prisma.note.delete({ where: { id } });
 }

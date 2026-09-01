@@ -44,3 +44,23 @@ export const remove = asyncHandler(async (req: Request, res: Response) => {
   await notesService.softDeleteNote(req.user!.id, req.params.id);
   res.status(204).send();
 });
+
+export const listTrash = asyncHandler(async (req: Request, res: Response) => {
+  const parsed = listNotesQuerySchema.safeParse(req.query);
+  if (!parsed.success) {
+    throw ApiError.badRequest('Invalid query parameters', parsed.error.flatten().fieldErrors);
+  }
+
+  const result = await notesService.listTrash(req.user!.id, parsed.data.page, parsed.data.pageSize);
+  res.status(200).json(result);
+});
+
+export const restore = asyncHandler(async (req: Request, res: Response) => {
+  const note = await notesService.restoreNote(req.user!.id, req.params.id);
+  res.status(200).json({ note });
+});
+
+export const purge = asyncHandler(async (req: Request, res: Response) => {
+  await notesService.purgeNote(req.user!.id, req.params.id);
+  res.status(204).send();
+});

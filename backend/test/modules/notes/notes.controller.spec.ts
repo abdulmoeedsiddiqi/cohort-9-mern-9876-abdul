@@ -106,4 +106,65 @@ describe('notes controller (integration)', () => {
     expect(list.body.notes).to.have.length(0);
     expect(list.body.counts.trash).to.equal(1);
   });
+
+  describe('trash', () => {
+    it('lists trashed notes', async () => {
+      const created = await request(app).post('/notes').set('Cookie', cookie).send({ title: 'Trashed one' });
+      await request(app).delete(`/notes/${created.body.note.id}`).set('Cookie', cookie);
+
+      const res = await request(app).get('/notes/trash').set('Cookie', cookie);
+
+      expect(res.status).to.equal(200);
+      expect(res.body.notes).to.have.length(1);
+      expect(res.body.notes[0].title).to.equal('Trashed one');
+    });
+
+    it('restores a trashed note back into the main list', async () => {
+      const created = await request(app).post('/notes').set('Cookie', cookie).send({ title: 'Restore me' });
+      await request(app).delete(`/notes/${created.body.note.id}`).set('Cookie', cookie);
+
+      const res = await request(app)
+        .post(`/notes/${created.body.note.id}/restore`)
+        .set('Cookie', cookie);
+
+      expect(res.status).to.equal(200);
+      expect(res.body.note.deletedAt).to.equal(null);
+
+      const list = await request(app).get('/notes').set('Cookie', cookie);
+      expect(list.body.notes).to.have.length(1);
+    });
+
+    it('returns 404 when restoring a note that is not in trash', async () => {
+      const created = await request(app).post('/notes').set('Cookie', cookie).send({ title: 'Not trashed' });
+
+      const res = await request(app)
+        .post(`/notes/${created.body.note.id}/restore`)
+        .set('Cookie', cookie);
+
+      expect(res.status).to.equal(404);
+    });
+
+    it('permanently purges a trashed note', async () => {
+      const created = await request(app).post('/notes').set('Cookie', cookie).send({ title: 'Purge me' });
+      await request(app).delete(`/notes/${created.body.note.id}`).set('Cookie', cookie);
+
+      const purgeRes = await request(app)
+        .delete(`/notes/${created.body.note.id}/purge`)
+        .set('Cookie', cookie);
+      expect(purgeRes.status).to.equal(204);
+
+      const trash = await request(app).get('/notes/trash').set('Cookie', cookie);
+      expect(trash.body.notes).to.have.length(0);
+    });
+
+    it('returns 404 when purging a note that is not in trash', async () => {
+      const created = await request(app).post('/notes').set('Cookie', cookie).send({ title: 'Not trashed' });
+
+      const res = await request(app)
+        .delete(`/notes/${created.body.note.id}/purge`)
+        .set('Cookie', cookie);
+
+      expect(res.status).to.equal(404);
+    });
+  });
 });

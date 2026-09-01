@@ -30,6 +30,10 @@ function makeFakeRepository(initialNotes: FakeNote[] = []) {
       notes.filter((n) => n.userId === userId && n.deletedAt).length,
     findOneForUser: async (id: string, userId: string) =>
       notes.find((n) => n.id === id && n.userId === userId && !n.deletedAt) ?? null,
+    findManyTrashForUser: async ({ userId }: { userId: string }) =>
+      notes.filter((n) => n.userId === userId && n.deletedAt),
+    findOneTrashedForUser: async (id: string, userId: string) =>
+      notes.find((n) => n.id === id && n.userId === userId && n.deletedAt) ?? null,
     create: async (
       userId: string,
       data: { title: string; content?: unknown; type: FakeNote['type']; color: string; wordCount: number },
@@ -57,6 +61,15 @@ function makeFakeRepository(initialNotes: FakeNote[] = []) {
       const note = notes.find((n) => n.id === id)!;
       note.deletedAt = new Date();
       return note;
+    },
+    restore: async (id: string) => {
+      const note = notes.find((n) => n.id === id)!;
+      note.deletedAt = null;
+      return note;
+    },
+    purge: async (id: string) => {
+      const index = notes.findIndex((n) => n.id === id);
+      notes.splice(index, 1);
     },
   };
 }
@@ -140,6 +153,69 @@ describe('notes.service', () => {
       await notesService.softDeleteNote('user-1', note.id, repository);
 
       expect(repository.notes.find((n) => n.id === note.id)?.deletedAt).to.not.equal(null);
+    });
+  });
+
+  describe('listTrash', () => {
+    it('returns only the trashed notes for the user', async () => {
+      const repository = makeFakeRepository();
+      const kept = await notesService.createNote('user-1', { title: 'Keep' }, repository);
+      const trashed = await notesService.createNote('user-1', { title: 'Trash me' }, repository);
+      await notesService.softDeleteNote('user-1', trashed.id, repository);
+
+      const result = await notesService.listTrash('user-1', 1, 8, repository);
+
+      expect(result.notes.map((n) => n.id)).to.deep.equal([trashed.id]);
+      expect(result.notes.map((n) => n.id)).to.not.include(kept.id);
+      expect(result.pagination.total).to.equal(1);
+    });
+  });
+
+  describe('restoreNote', () => {
+    it('clears deletedAt for a trashed note', async () => {
+      const repository = makeFakeRepository();
+      const note = await notesService.createNote('user-1', { title: 'To restore' }, repository);
+      await notesService.softDeleteNote('user-1', note.id, repository);
+
+      const restored = await notesService.restoreNote('user-1', note.id, repository);
+
+      expect(restored.deletedAt).to.equal(null);
+    });
+
+    it('throws 404 when the note is not in trash', async () => {
+      const repository = makeFakeRepository();
+      const note = await notesService.createNote('user-1', { title: 'Not trashed' }, repository);
+
+      try {
+        await notesService.restoreNote('user-1', note.id, repository);
+        expect.fail('expected restoreNote to throw');
+      } catch (err) {
+        expect((err as { statusCode: number }).statusCode).to.equal(404);
+      }
+    });
+  });
+
+  describe('purgeNote', () => {
+    it('permanently removes a trashed note', async () => {
+      const repository = makeFakeRepository();
+      const note = await notesService.createNote('user-1', { title: 'Gone forever' }, repository);
+      await notesService.softDeleteNote('user-1', note.id, repository);
+
+      await notesService.purgeNote('user-1', note.id, repository);
+
+      expect(repository.notes.find((n) => n.id === note.id)).to.equal(undefined);
+    });
+
+    it('throws 404 when the note is not in trash', async () => {
+      const repository = makeFakeRepository();
+      const note = await notesService.createNote('user-1', { title: 'Not trashed' }, repository);
+
+      try {
+        await notesService.purgeNote('user-1', note.id, repository);
+        expect.fail('expected purgeNote to throw');
+      } catch (err) {
+        expect((err as { statusCode: number }).statusCode).to.equal(404);
+      }
     });
   });
 });

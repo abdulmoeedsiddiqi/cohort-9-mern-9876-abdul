@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 
+import { DashboardLayout } from '../components/layout/DashboardLayout';
 import { AuthPage } from '../pages/AuthPage';
 import { GuestRoute } from './GuestRoute';
 import { ProtectedRoute } from './ProtectedRoute';
@@ -24,7 +25,13 @@ export function AppRoutes() {
       </Route>
 
       <Route element={<ProtectedRoute />}>
-        <Route path="/notes" element={<ComingSoon title="All notes" />} />
+        <Route element={<DashboardLayout />}>
+          <Route path="/notes" element={<ComingSoon title="All notes" />} />
+          <Route path="/notes/pinned" element={<ComingSoon title="Pinned" />} />
+          <Route path="/notes/video" element={<ComingSoon title="Video notes" />} />
+          <Route path="/notes/trash" element={<ComingSoon title="Trash" />} />
+          <Route path="/notes/new" element={<ComingSoon title="New note" />} />
+        </Route>
       </Route>
 
       <Route path="*" element={<ComingSoon title="Not found" />} />

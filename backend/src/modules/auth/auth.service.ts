@@ -37,6 +37,18 @@ export async function signup(
   return { user: toPublicUser(user), token };
 }
 
+export async function getCurrentUser(
+  userId: string,
+  repository: AuthRepository = authRepository,
+): Promise<PublicUser> {
+  const user = await repository.findUserById(userId);
+  if (!user) {
+    throw ApiError.unauthorized('Invalid or expired session');
+  }
+
+  return toPublicUser(user);
+}
+
 export async function login(
   input: LoginInput,
   repository: AuthRepository = authRepository,

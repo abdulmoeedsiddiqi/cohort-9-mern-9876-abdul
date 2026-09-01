@@ -92,4 +92,35 @@ describe('auth controller (integration)', () => {
       expect(res.status).to.equal(401);
     });
   });
+
+  describe('GET /auth/me', () => {
+    it('returns the logged-in user when the auth cookie is valid', async () => {
+      const signupRes = await request(app).post('/auth/signup').send({
+        name: 'Alan Turing',
+        email: `alan${EMAIL_DOMAIN}`,
+        password: 'password123',
+      });
+      const cookie = signupRes.headers['set-cookie'][0];
+
+      const res = await request(app).get('/auth/me').set('Cookie', cookie);
+
+      expect(res.status).to.equal(200);
+      expect(res.body.user.email).to.equal(`alan${EMAIL_DOMAIN}`);
+    });
+
+    it('returns 401 without an auth cookie', async () => {
+      const res = await request(app).get('/auth/me');
+      expect(res.status).to.equal(401);
+    });
+  });
+
+  describe('POST /auth/logout', () => {
+    it('clears the auth cookie', async () => {
+      const res = await request(app).post('/auth/logout');
+
+      expect(res.status).to.equal(204);
+      const cookie = res.headers['set-cookie']?.[0];
+      expect(cookie).to.include('auth_token=;');
+    });
+  });
 });

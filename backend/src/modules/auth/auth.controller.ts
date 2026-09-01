@@ -17,6 +17,15 @@ function setAuthCookie(res: Response, token: string): void {
   });
 }
 
+function clearAuthCookie(res: Response): void {
+  res.clearCookie(env.cookieName, {
+    httpOnly: true,
+    secure: env.nodeEnv === 'production',
+    sameSite: 'lax',
+    path: '/',
+  });
+}
+
 export const signup = asyncHandler(async (req: Request, res: Response) => {
   const parsed = signupSchema.safeParse(req.body);
   if (!parsed.success) {
@@ -37,4 +46,14 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
   const { user, token } = await authService.login(parsed.data);
   setAuthCookie(res, token);
   res.status(200).json({ user });
+});
+
+export const me = asyncHandler(async (req: Request, res: Response) => {
+  const user = await authService.getCurrentUser(req.user!.id);
+  res.status(200).json({ user });
+});
+
+export const logout = asyncHandler(async (_req: Request, res: Response) => {
+  clearAuthCookie(res);
+  res.status(204).send();
 });

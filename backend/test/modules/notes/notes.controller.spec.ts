@@ -4,6 +4,7 @@ import { expect } from 'chai';
 import request from 'supertest';
 
 import { createApp } from '../../../src/app';
+import { env } from '../../../src/config/env';
 import { prisma } from '../../../src/lib/prisma';
 
 const EMAIL_DOMAIN = '@notes-controller-test.local';
@@ -274,18 +275,24 @@ describe('notes controller (integration)', () => {
     expect(res.status).to.equal(401);
   });
 
-  it('returns a clear error when summarizing without a configured Grok API key', async () => {
+  it('returns a clear error when summarizing without a configured AI API key', async () => {
     const created = await request(app)
       .post('/notes')
       .set('Cookie', cookie)
       .send({ title: 'Standup recap', content: 'Team agreed on MVP scope.' });
 
-    const res = await request(app).post(`/notes/${created.body.note.id}/summarize`).set('Cookie', cookie);
-
-    // The test environment has no AI_API_KEY configured, so this exercises the
-    // real "not configured" guard rather than calling the actual Grok API.
-    expect(res.status).to.equal(400);
-    expect(res.body.error.message).to.match(/not configured/i);
+    // Explicitly clear the key for this test rather than relying on the
+    // environment happening to have none configured (a developer's local
+    // .env may well have a real key for manual testing).
+    const originalKey = env.aiApiKey;
+    env.aiApiKey = undefined;
+    try {
+      const res = await request(app).post(`/notes/${created.body.note.id}/summarize`).set('Cookie', cookie);
+      expect(res.status).to.equal(400);
+      expect(res.body.error.message).to.match(/not configured/i);
+    } finally {
+      env.aiApiKey = originalKey;
+    }
   });
 
   it('returns 404 when summarizing a nonexistent note', async () => {

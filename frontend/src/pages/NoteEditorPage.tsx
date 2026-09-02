@@ -96,7 +96,7 @@ export function NoteEditorPage() {
         });
       }
 
-      navigate(`/notes/${noteId}`);
+      navigate('/notes');
     } catch {
       setError('Could not save your note. Please try again.');
     }

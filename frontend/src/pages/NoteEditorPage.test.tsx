@@ -41,6 +41,7 @@ function renderAt(path: string) {
       <ThemeProvider>
         <MemoryRouter initialEntries={[path]}>
           <Routes>
+            <Route path="/notes" element={<div>All notes screen</div>} />
             <Route path="/notes/new" element={<NoteEditorPage />} />
             <Route path="/notes/:id" element={<NoteEditorPage />} />
           </Routes>
@@ -74,6 +75,8 @@ describe('NoteEditorPage', () => {
     expect(payload?.color).toBe('blue');
     expect(payload?.type).toBe('TEXT');
     expect(JSON.stringify(payload?.content)).toContain('Hello world');
+
+    expect(await screen.findByText('All notes screen')).toBeInTheDocument();
   });
 
   it('shows a validation error when saving without a title', async () => {
@@ -114,6 +117,8 @@ describe('NoteEditorPage', () => {
         color: 'blue',
       }),
     );
+
+    expect(await screen.findByText('All notes screen')).toBeInTheDocument();
   });
 
   it('hides the text editor and shows the video recorder for video type', async () => {

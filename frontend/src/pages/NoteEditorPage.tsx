@@ -7,6 +7,7 @@ import { TiptapEditor } from '../components/editor/TiptapEditor';
 import type { RecordedVideo } from '../components/notes/VideoRecorder';
 import { VideoRecorder } from '../components/notes/VideoRecorder';
 import { useCreateNote, useNote, useUpdateNote, useUploadVideoAsset } from '../hooks/useNotes';
+import { resolveAssetUrl } from '../lib/assetUrl';
 import { countWords, extractPlainText } from '../lib/tiptapText';
 import type { NoteType } from '../types/note.types';
 
@@ -158,7 +159,7 @@ export function NoteEditorPage() {
         )}
 
         {type !== 'TEXT' && (
-          <VideoRecorder onRecorded={setRecordedVideo} existingAssetUrl={existingVideoAsset?.url} />
+          <VideoRecorder onRecorded={setRecordedVideo} existingAssetUrl={resolveAssetUrl(existingVideoAsset?.url)} />
         )}
 
         {error && <p className="auth-error">{error}</p>}

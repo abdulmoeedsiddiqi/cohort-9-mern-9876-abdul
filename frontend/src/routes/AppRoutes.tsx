@@ -29,8 +29,8 @@ export function AppRoutes() {
       <Route element={<ProtectedRoute />}>
         <Route element={<DashboardLayout />}>
           <Route path="/notes" element={<NotesPage />} />
-          <Route path="/notes/pinned" element={<ComingSoon title="Pinned" />} />
-          <Route path="/notes/video" element={<ComingSoon title="Video notes" />} />
+          <Route path="/notes/pinned" element={<NotesPage filter="pinned" />} />
+          <Route path="/notes/video" element={<NotesPage filter="video" />} />
           <Route path="/notes/trash" element={<ComingSoon title="Trash" />} />
         </Route>
         <Route path="/notes/new" element={<NoteEditorPage />} />

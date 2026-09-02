@@ -9,6 +9,9 @@ jest.mock('../../api/notes.api', () => ({
   updateNote: jest.fn(),
   deleteNote: jest.fn(),
 }));
+jest.mock('../../lib/assetUrl', () => ({
+  resolveAssetUrl: (path: string | null | undefined) => (path ? `http://localhost:4200${path}` : undefined),
+}));
 
 function makeNote(overrides: Partial<Note>): Note {
   return {

@@ -13,6 +13,9 @@ jest.mock('../api/notes.api', () => ({
   updateNote: jest.fn(),
   getNote: jest.fn(),
 }));
+jest.mock('../lib/assetUrl', () => ({
+  resolveAssetUrl: (path: string | null | undefined) => (path ? `http://localhost:4200${path}` : undefined),
+}));
 const mockedNotesApi = notesApi as jest.Mocked<typeof notesApi>;
 
 const existingNote: Note = {

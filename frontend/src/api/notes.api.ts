@@ -16,9 +16,12 @@ export interface UpdateNoteInput {
   pinned?: boolean;
 }
 
+export type NoteListFilter = 'all' | 'pinned' | 'video';
+
 export interface ListNotesParams {
   page?: number;
   pageSize?: number;
+  filter?: NoteListFilter;
 }
 
 export async function listNotes(params: ListNotesParams = {}): Promise<NotesListResult> {

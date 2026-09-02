@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useDeleteNote, useUpdateNote } from '../../hooks/useNotes';
+import { resolveAssetUrl } from '../../lib/assetUrl';
 import type { Note } from '../../types/note.types';
 
 function formatRelativeTime(iso: string): string {
@@ -15,6 +16,14 @@ function formatRelativeTime(iso: string): string {
   return `${diffDay}d ago`;
 }
 
+function formatDuration(totalSeconds: number): string {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = Math.round(totalSeconds % 60)
+    .toString()
+    .padStart(2, '0');
+  return `${minutes}:${seconds}`;
+}
+
 export function NoteCard({ note }: { note: Note }) {
   const navigate = useNavigate();
   const updateNote = useUpdateNote();
@@ -22,6 +31,8 @@ export function NoteCard({ note }: { note: Note }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const preview = typeof note.content === 'string' ? note.content : '';
+  const videoAsset = note.assets?.find((asset) => asset.kind === 'VIDEO');
+  const thumbnailUrl = resolveAssetUrl(videoAsset?.thumbnailUrl);
 
   function togglePin() {
     setIsMenuOpen(false);
@@ -71,6 +82,20 @@ export function NoteCard({ note }: { note: Note }) {
           )}
         </div>
       </div>
+
+      {videoAsset && (
+        <div
+          className="note-card-thumbnail"
+          style={thumbnailUrl ? { backgroundImage: `url(${thumbnailUrl})` } : undefined}
+        >
+          <span className="note-card-play" aria-hidden="true">
+            ▶
+          </span>
+          {videoAsset.durationSec != null && (
+            <span className="note-card-duration">{formatDuration(videoAsset.durationSec)}</span>
+          )}
+        </div>
+      )}
 
       {preview && <p className="note-card-preview">{preview}</p>}
       {note.type !== 'TEXT' && (

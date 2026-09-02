@@ -1105,6 +1105,10 @@ body {
   color: var(--color-text);
 }
 
+.tiptap-content .ProseMirror ::selection {
+  background-color: rgba(37, 99, 235, 0.35);
+}
+
 .tiptap-content .ProseMirror:focus {
   outline: none;
 }

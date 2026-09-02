@@ -70,7 +70,7 @@ describe('TiptapEditor', () => {
     expect(colorInput.value.toLowerCase()).toBe('#111827');
   });
 
-  it('collapses the text selection after applying a color, so the applied color is visible', async () => {
+  it('keeps the text selected after applying a color, so further edits still target it', async () => {
     const user = userEvent.setup();
     render(<TiptapEditor content={null} onUpdate={jest.fn()} />);
 
@@ -82,9 +82,11 @@ describe('TiptapEditor', () => {
     const colorInput = screen.getByLabelText('Pick text color') as HTMLInputElement;
     fireEvent.change(colorInput, { target: { value: '#ff0000' } });
 
-    await user.keyboard('!');
+    // If the selection were still intact, typing would replace it rather than append.
+    await user.keyboard('replaced');
 
-    expect(screen.getByText('colored text!')).toBeInTheDocument();
+    expect(screen.getByText('replaced')).toBeInTheDocument();
+    expect(screen.queryByText(/colored text/)).not.toBeInTheDocument();
   });
 
   it('reports the live word count as the user types', async () => {

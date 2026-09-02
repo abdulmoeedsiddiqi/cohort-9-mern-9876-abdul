@@ -20,7 +20,8 @@ import {
 type NotesRepository = typeof notesRepository;
 
 function computeWordCount(content: unknown): number {
-  return typeof content === 'string' ? countWords(content) : 0;
+  const text = typeof content === 'string' ? content : extractPlainText(content);
+  return countWords(text);
 }
 
 export async function createNote(
@@ -155,13 +156,21 @@ export async function summarizeNote(
   noteId: string,
   repository: NotesRepository = notesRepository,
   summarizeText: typeof aiService.summarizeText = aiService.summarizeText,
+  overrideContent?: unknown,
 ): Promise<Note> {
   const existing = await repository.findOneForUser(noteId, userId);
   if (!existing) {
     throw ApiError.notFound('Note not found');
   }
 
-  const summary = await summarizeText(extractPlainText(existing.content));
+  const rawContent = overrideContent !== undefined ? overrideContent : existing.content;
+  const summary = await summarizeText(extractPlainText(rawContent));
+  if (overrideContent !== undefined) {
+    await repository.update(noteId, {
+      content: overrideContent,
+      wordCount: computeWordCount(overrideContent),
+    });
+  }
   const updated = await repository.updateSummary(noteId, summary);
   emitNoteEvent(userId, 'note:updated', updated);
   return updated;

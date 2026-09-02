@@ -368,6 +368,28 @@ describe('notes.service', () => {
       }
       expect(repository.notes.find((n) => n.id === note.id)?.summary).to.equal(undefined);
     });
+
+    it('summarizes and persists new content when overrideContent is provided', async () => {
+      const repository = makeFakeRepository();
+      const note = await notesService.createNote(
+        'user-1',
+        { title: 'Standup recap', content: 'Old content.' },
+        repository,
+      );
+      const fakeSummarize = async (text: string) => `Summary of: ${text}`;
+
+      const updated = await notesService.summarizeNote(
+        'user-1',
+        note.id,
+        repository,
+        fakeSummarize,
+        'Brand new in-progress editor text.',
+      );
+
+      expect(updated.summary).to.equal('Summary of: Brand new in-progress editor text.');
+      expect(updated.content).to.equal('Brand new in-progress editor text.');
+      expect(updated.wordCount).to.equal(5);
+    });
   });
 
   describe('softDeleteNote', () => {

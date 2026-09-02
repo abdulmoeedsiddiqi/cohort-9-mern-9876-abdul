@@ -123,7 +123,13 @@ export const update = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const summarize = asyncHandler(async (req: Request, res: Response) => {
-  const note = await notesService.summarizeNote(req.user!.id, req.params.id);
+  const note = await notesService.summarizeNote(
+    req.user!.id,
+    req.params.id,
+    undefined,
+    undefined,
+    req.body?.content,
+  );
   res.status(200).json({ note });
 });
 

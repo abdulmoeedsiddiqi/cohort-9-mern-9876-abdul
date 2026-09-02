@@ -37,7 +37,10 @@ function TextColorPicker({ editor }: { editor: Editor }) {
         type="color"
         className="editor-toolbar-color-input"
         value={activeColor || DEFAULT_TEXT_COLOR}
-        onChange={(event) => editor.chain().focus().setColor(event.target.value).run()}
+        onChange={(event) => {
+          const { to } = editor.state.selection;
+          editor.chain().focus().setColor(event.target.value).setTextSelection(to).run();
+        }}
         aria-label="Pick text color"
       />
     </label>

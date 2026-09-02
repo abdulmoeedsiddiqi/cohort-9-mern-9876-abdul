@@ -70,6 +70,23 @@ describe('TiptapEditor', () => {
     expect(colorInput.value.toLowerCase()).toBe('#111827');
   });
 
+  it('collapses the text selection after applying a color, so the applied color is visible', async () => {
+    const user = userEvent.setup();
+    render(<TiptapEditor content={null} onUpdate={jest.fn()} />);
+
+    const editor = screen.getByRole('textbox', { name: 'Note content' });
+    await user.click(editor);
+    await user.type(editor, 'colored text');
+    await user.keyboard('{Control>}a{/Control}');
+
+    const colorInput = screen.getByLabelText('Pick text color') as HTMLInputElement;
+    fireEvent.change(colorInput, { target: { value: '#ff0000' } });
+
+    await user.keyboard('!');
+
+    expect(screen.getByText('colored text!')).toBeInTheDocument();
+  });
+
   it('reports the live word count as the user types', async () => {
     const onUpdate = jest.fn();
     const user = userEvent.setup();

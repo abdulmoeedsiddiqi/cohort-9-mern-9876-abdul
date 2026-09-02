@@ -1,3 +1,5 @@
+import type { IncomingMessage } from 'http';
+
 import { expect } from 'chai';
 import request from 'supertest';
 
@@ -5,6 +7,12 @@ import { createApp } from '../../../src/app';
 import { prisma } from '../../../src/lib/prisma';
 
 const EMAIL_DOMAIN = '@notes-controller-test.local';
+
+function bufferParser(res: IncomingMessage, callback: (err: Error | null, body: Buffer) => void): void {
+  const chunks: Buffer[] = [];
+  res.on('data', (chunk: Buffer) => chunks.push(chunk));
+  res.on('end', () => callback(null, Buffer.concat(chunks)));
+}
 
 describe('notes controller (integration)', () => {
   const app = createApp();
@@ -138,6 +146,57 @@ describe('notes controller (integration)', () => {
   it('rejects an unauthenticated export request', async () => {
     const res = await request(app).get('/notes/export');
     expect(res.status).to.equal(401);
+  });
+
+  it('exports notes as plain text', async () => {
+    await request(app).post('/notes').set('Cookie', cookie).send({ title: 'Text note', content: 'hello txt' });
+
+    const res = await request(app).get('/notes/export').query({ format: 'txt' }).set('Cookie', cookie);
+
+    expect(res.status).to.equal(200);
+    expect(res.headers['content-type']).to.include('text/plain');
+    expect(res.headers['content-disposition']).to.match(/filename="notes-export-.*\.txt"/);
+    expect(res.text).to.include('Text note');
+    expect(res.text).to.include('hello txt');
+  });
+
+  it('exports notes as a PDF file', async () => {
+    await request(app).post('/notes').set('Cookie', cookie).send({ title: 'PDF note', content: 'hello pdf' });
+
+    const res = await request(app)
+      .get('/notes/export')
+      .query({ format: 'pdf' })
+      .set('Cookie', cookie)
+      .buffer(true)
+      .parse(bufferParser);
+
+    expect(res.status).to.equal(200);
+    expect(res.headers['content-type']).to.include('application/pdf');
+    expect(res.headers['content-disposition']).to.match(/filename="notes-export-.*\.pdf"/);
+    expect((res.body as Buffer).subarray(0, 4).toString('ascii')).to.equal('%PDF');
+  });
+
+  it('exports notes as a docx file', async () => {
+    await request(app).post('/notes').set('Cookie', cookie).send({ title: 'Docx note', content: 'hello docx' });
+
+    const res = await request(app)
+      .get('/notes/export')
+      .query({ format: 'docx' })
+      .set('Cookie', cookie)
+      .buffer(true)
+      .parse(bufferParser);
+
+    expect(res.status).to.equal(200);
+    expect(res.headers['content-type']).to.include(
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    );
+    expect(res.headers['content-disposition']).to.match(/filename="notes-export-.*\.docx"/);
+    expect((res.body as Buffer).subarray(0, 2).toString('ascii')).to.equal('PK');
+  });
+
+  it('rejects an invalid export format', async () => {
+    const res = await request(app).get('/notes/export').query({ format: 'exe' }).set('Cookie', cookie);
+    expect(res.status).to.equal(400);
   });
 
   it('imports notes from a previously exported file', async () => {

@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { EXPORT_FORMATS } from './notes-export-formats';
+
 export const NOTE_COLORS = ['yellow', 'blue', 'green', 'purple', 'pink', 'orange', 'red'] as const;
 const NOTE_TYPES = ['TEXT', 'VIDEO', 'MIXED'] as const;
 
@@ -31,6 +33,10 @@ export const importNotesSchema = z.object({
     .array(importNoteSchema)
     .min(1, 'At least one note is required')
     .max(500, 'Cannot import more than 500 notes at once'),
+});
+
+export const exportNotesQuerySchema = z.object({
+  format: z.enum(EXPORT_FORMATS).optional().default('json'),
 });
 
 export const listNotesQuerySchema = z.object({

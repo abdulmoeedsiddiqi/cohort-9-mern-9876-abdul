@@ -3,13 +3,17 @@ import { Request, Response } from 'express';
 import { ApiError } from '../../utils/ApiError';
 import { asyncHandler } from '../../utils/asyncHandler';
 import { toAssetResponse } from './notes-assets.controller';
+import { toDocxBuffer, toPdfBuffer, toPlainText } from './notes-export-formats';
 import * as notesService from './notes.service';
 import {
   createNoteSchema,
+  exportNotesQuerySchema,
   importNotesSchema,
   listNotesQuerySchema,
   updateNoteSchema,
 } from './notes.validation';
+
+const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
 export const list = asyncHandler(async (req: Request, res: Response) => {
   const parsed = listNotesQuerySchema.safeParse(req.query);
@@ -30,9 +34,36 @@ export const list = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const exportNotes = asyncHandler(async (req: Request, res: Response) => {
+  const parsedQuery = exportNotesQuerySchema.safeParse(req.query);
+  if (!parsedQuery.success) {
+    throw ApiError.badRequest('Invalid export format', parsedQuery.error.flatten().fieldErrors);
+  }
+
   const result = await notesService.exportNotes(req.user!.id);
-  const filename = `notes-export-${new Date().toISOString().slice(0, 10)}.json`;
-  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  const dateStamp = new Date().toISOString().slice(0, 10);
+  const { format } = parsedQuery.data;
+
+  if (format === 'txt') {
+    res.setHeader('Content-Disposition', `attachment; filename="notes-export-${dateStamp}.txt"`);
+    res.status(200).type('text/plain').send(toPlainText(result.notes));
+    return;
+  }
+
+  if (format === 'pdf') {
+    const pdf = await toPdfBuffer(result.notes);
+    res.setHeader('Content-Disposition', `attachment; filename="notes-export-${dateStamp}.pdf"`);
+    res.status(200).type('application/pdf').send(pdf);
+    return;
+  }
+
+  if (format === 'docx') {
+    const docx = await toDocxBuffer(result.notes);
+    res.setHeader('Content-Disposition', `attachment; filename="notes-export-${dateStamp}.docx"`);
+    res.status(200).type(DOCX_MIME).send(docx);
+    return;
+  }
+
+  res.setHeader('Content-Disposition', `attachment; filename="notes-export-${dateStamp}.json"`);
   res.status(200).json(result);
 });
 

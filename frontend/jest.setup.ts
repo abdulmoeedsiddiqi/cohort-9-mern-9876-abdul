@@ -45,3 +45,16 @@ if (!('createObjectURL' in URL)) {
     revokeObjectURL: () => {},
   });
 }
+
+// jsdom's Blob/File don't implement text(), which the Sidebar's import flow
+// uses to read an uploaded export file.
+if (typeof Blob.prototype.text !== 'function') {
+  Blob.prototype.text = function text(this: Blob) {
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(reader.error);
+      reader.readAsText(this);
+    });
+  };
+}

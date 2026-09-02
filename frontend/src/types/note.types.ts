@@ -55,3 +55,18 @@ export interface TrashListResult {
   notes: Note[];
   pagination: PaginationMeta;
 }
+
+export interface ExportedNote {
+  title: string;
+  content: unknown;
+  type: NoteType;
+  color: string;
+  pinned: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NotesExport {
+  exportedAt: string;
+  notes: ExportedNote[];
+}

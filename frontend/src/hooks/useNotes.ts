@@ -75,6 +75,18 @@ export function usePurgeNote() {
   });
 }
 
+export function useExportNotes() {
+  return useMutation({ mutationFn: notesApi.exportNotes });
+}
+
+export function useImportNotes() {
+  const invalidate = useInvalidateNotes();
+  return useMutation({
+    mutationFn: notesApi.importNotes,
+    onSuccess: invalidate,
+  });
+}
+
 export function useUploadVideoAsset() {
   const invalidate = useInvalidateNotes();
   return useMutation({

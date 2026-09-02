@@ -1,4 +1,4 @@
-import type { Note, NoteAsset, NoteType, NotesListResult, TrashListResult } from '../types/note.types';
+import type { Note, NoteAsset, NotesExport, NoteType, NotesListResult, TrashListResult } from '../types/note.types';
 import { apiClient } from './client';
 
 export interface CreateNoteInput {
@@ -61,6 +61,24 @@ export async function restoreNote(id: string): Promise<Note> {
 
 export async function purgeNote(id: string): Promise<void> {
   await apiClient.delete(`/notes/${id}/purge`);
+}
+
+export async function exportNotes(): Promise<NotesExport> {
+  const res = await apiClient.get<NotesExport>('/notes/export');
+  return res.data;
+}
+
+export interface ImportNoteInput {
+  title: string;
+  content?: unknown;
+  type?: NoteType;
+  color?: string;
+  pinned?: boolean;
+}
+
+export async function importNotes(notes: ImportNoteInput[]): Promise<{ imported: number }> {
+  const res = await apiClient.post<{ imported: number }>('/notes/import', { notes });
+  return res.data;
 }
 
 export interface UploadVideoAssetInput {

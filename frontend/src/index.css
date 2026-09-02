@@ -190,6 +190,43 @@ body {
   font-weight: 700;
 }
 
+.sidebar-secondary {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-action {
+  width: 100%;
+  border: none;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.sidebar-action:hover {
+  background: color-mix(in srgb, var(--color-text-muted) 12%, transparent);
+}
+
+.sidebar-action:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.sidebar-file-input {
+  display: none;
+}
+
+.sidebar-import-status {
+  margin: 4px 12px 0;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
 .dashboard-main {
   flex: 1;
   padding: 24px 32px;

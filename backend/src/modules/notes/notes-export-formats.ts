@@ -27,18 +27,24 @@ function pdfFontFor(bold?: boolean, italic?: boolean): string {
   return 'Helvetica';
 }
 
+const PDF_DEFAULT_COLOR = '#000000';
+
 function renderPdfRuns(doc: PDFKit.PDFDocument, runs: RichTextRun[], extraBold = false): void {
   if (runs.length === 0) {
     doc.text(' ');
     return;
   }
   runs.forEach((run, index) => {
-    doc.font(pdfFontFor(run.bold || extraBold, run.italic)).text(run.text, {
-      continued: index < runs.length - 1,
-      underline: run.underline,
-      strike: run.strike,
-    });
+    doc
+      .font(pdfFontFor(run.bold || extraBold, run.italic))
+      .fillColor(run.color ?? PDF_DEFAULT_COLOR)
+      .text(run.text, {
+        continued: index < runs.length - 1,
+        underline: run.underline,
+        strike: run.strike,
+      });
   });
+  doc.fillColor(PDF_DEFAULT_COLOR);
 }
 
 function renderPdfBlocks(doc: PDFKit.PDFDocument, blocks: RichBlock[]): void {
@@ -125,6 +131,7 @@ function toDocxRun(run: RichTextRun, extraItalic = false): TextRun {
     italics: run.italic || extraItalic,
     strike: run.strike,
     underline: run.underline ? {} : undefined,
+    color: run.color,
   });
 }
 

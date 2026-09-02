@@ -30,6 +30,7 @@ export interface RichTextRun {
   italic?: boolean;
   underline?: boolean;
   strike?: boolean;
+  color?: string;
 }
 
 export type RichBlock =
@@ -42,10 +43,12 @@ export type RichBlock =
 interface TiptapNode {
   type?: string;
   attrs?: { level?: number };
-  marks?: { type: string }[];
+  marks?: { type: string; attrs?: { color?: string } }[];
   text?: string;
   content?: TiptapNode[];
 }
+
+const HEX_COLOR = /^#[0-9a-f]{3}([0-9a-f]{3})?$/i;
 
 function runFromTextNode(node: TiptapNode): RichTextRun {
   const run: RichTextRun = { text: node.text ?? '' };
@@ -54,6 +57,9 @@ function runFromTextNode(node: TiptapNode): RichTextRun {
     if (mark.type === 'italic') run.italic = true;
     if (mark.type === 'underline') run.underline = true;
     if (mark.type === 'strike') run.strike = true;
+    if (mark.type === 'textStyle' && mark.attrs?.color && HEX_COLOR.test(mark.attrs.color)) {
+      run.color = mark.attrs.color;
+    }
   }
   return run;
 }

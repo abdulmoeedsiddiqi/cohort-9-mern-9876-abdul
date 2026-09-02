@@ -37,6 +37,38 @@ describe('extractRichBlocks', () => {
     });
   });
 
+  it('captures a valid hex color from a textStyle mark', () => {
+    const doc = {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [{ type: 'text', text: 'red text', marks: [{ type: 'textStyle', attrs: { color: '#ff0000' } }] }],
+        },
+      ],
+    };
+
+    expect(extractRichBlocks(doc)).to.deep.equal([{ kind: 'paragraph', runs: [{ text: 'red text', color: '#ff0000' }] }]);
+  });
+
+  it('ignores a textStyle mark with no color or a non-hex color', () => {
+    const doc = {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            { type: 'text', text: 'no color', marks: [{ type: 'textStyle', attrs: {} }] },
+            { type: 'text', text: 'bad color', marks: [{ type: 'textStyle', attrs: { color: 'red' } }] },
+          ],
+        },
+      ],
+    };
+
+    const blocks = extractRichBlocks(doc);
+    expect(blocks[0].runs).to.deep.equal([{ text: 'no color' }, { text: 'bad color' }]);
+  });
+
   it('captures heading level from attrs, defaulting to 1', () => {
     const doc = {
       type: 'doc',

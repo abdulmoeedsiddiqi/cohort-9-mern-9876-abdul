@@ -41,6 +41,8 @@ const formattedNote: ExportedNote = {
           { type: 'text', text: 'bold text', marks: [{ type: 'bold' }] },
           { type: 'text', text: ' and ' },
           { type: 'text', text: 'italic text', marks: [{ type: 'italic' }] },
+          { type: 'text', text: ' and ' },
+          { type: 'text', text: 'red text', marks: [{ type: 'textStyle', attrs: { color: '#ff0000' } }] },
         ],
       },
       {
@@ -125,6 +127,8 @@ describe('notes-export-formats', () => {
       expect(xml).to.match(/Heading2/);
       expect(xml).to.include('Bulleted item');
       expect(xml).to.include('<w:numPr>');
+      expect(xml).to.include('red text');
+      expect(xml).to.include('w:val="ff0000"');
     });
   });
 });

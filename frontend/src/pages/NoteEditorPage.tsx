@@ -4,7 +4,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { ThemeToggle } from '../components/common/ThemeToggle';
 import { TiptapEditor } from '../components/editor/TiptapEditor';
-import { useCreateNote, useNote, useUpdateNote } from '../hooks/useNotes';
+import type { RecordedVideo } from '../components/notes/VideoRecorder';
+import { VideoRecorder } from '../components/notes/VideoRecorder';
+import { useCreateNote, useNote, useUpdateNote, useUploadVideoAsset } from '../hooks/useNotes';
 import { countWords, extractPlainText } from '../lib/tiptapText';
 import type { NoteType } from '../types/note.types';
 
@@ -42,12 +44,14 @@ export function NoteEditorPage() {
   const { data: existingNote, isLoading } = useNote(id);
   const createNote = useCreateNote();
   const updateNote = useUpdateNote();
+  const uploadVideoAsset = useUploadVideoAsset();
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState<unknown>(undefined);
   const [wordCount, setWordCount] = useState(0);
   const [type, setType] = useState<NoteType>('TEXT');
   const [color, setColor] = useState('yellow');
+  const [recordedVideo, setRecordedVideo] = useState<RecordedVideo | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -64,7 +68,7 @@ export function NoteEditorPage() {
     }
   }, [existingNote]);
 
-  const isSaving = createNote.isPending || updateNote.isPending;
+  const isSaving = createNote.isPending || updateNote.isPending || uploadVideoAsset.isPending;
 
   async function handleSave(event: FormEvent) {
     event.preventDefault();
@@ -76,13 +80,22 @@ export function NoteEditorPage() {
     }
 
     try {
-      if (isEditing && id) {
-        await updateNote.mutateAsync({ id, input: { title, content, type, color } });
-        navigate(`/notes/${id}`);
-      } else {
-        const note = await createNote.mutateAsync({ title, content, type, color });
-        navigate(`/notes/${note.id}`);
+      const noteId = isEditing && id
+        ? (await updateNote.mutateAsync({ id, input: { title, content, type, color } })).id
+        : (await createNote.mutateAsync({ title, content, type, color })).id;
+
+      if (recordedVideo) {
+        await uploadVideoAsset.mutateAsync({
+          noteId,
+          input: {
+            video: recordedVideo.blob,
+            thumbnail: recordedVideo.thumbnailBlob,
+            durationSec: recordedVideo.durationSec,
+          },
+        });
       }
+
+      navigate(`/notes/${noteId}`);
     } catch {
       setError('Could not save your note. Please try again.');
     }
@@ -91,6 +104,8 @@ export function NoteEditorPage() {
   if (isEditing && isLoading) {
     return <p className="notes-page-status">Loading note…</p>;
   }
+
+  const existingVideoAsset = existingNote?.assets?.[0];
 
   return (
     <div className="note-editor-page">
@@ -143,9 +158,7 @@ export function NoteEditorPage() {
         )}
 
         {type !== 'TEXT' && (
-          <div className="note-editor-video-placeholder">
-            <p>Video recording is coming soon.</p>
-          </div>
+          <VideoRecorder onRecorded={setRecordedVideo} existingAssetUrl={existingVideoAsset?.url} />
         )}
 
         {error && <p className="auth-error">{error}</p>}

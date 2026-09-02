@@ -859,12 +859,81 @@ body {
   margin: 0 0 0.6em;
 }
 
-.note-editor-video-placeholder {
-  border: 1px dashed var(--color-border);
+.video-recorder {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.video-recorder-stage {
+  position: relative;
   border-radius: 10px;
-  padding: 40px 16px;
-  text-align: center;
-  color: var(--color-text-muted);
+  overflow: hidden;
+  background: #0b0c10;
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px;
+}
+
+.video-recorder-video {
+  width: 100%;
+  max-height: 360px;
+  border-radius: 10px;
+  background: #0b0c10;
+  object-fit: cover;
+}
+
+.video-recorder-record-btn {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.video-recorder-record-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ef4444;
+  transition: border-radius 0.15s ease;
+}
+
+.video-recorder-record-btn.recording .video-recorder-record-dot {
+  border-radius: 4px;
+}
+
+.video-recorder-hint {
+  margin: 0;
+  font-size: 13px;
+  color: #f8fafc;
+}
+
+.video-recorder-meta {
+  margin: 0;
+  font-size: 12px;
+  color: rgba(248, 250, 252, 0.6);
+}
+
+.video-recorder-retake {
+  align-self: flex-start;
+  padding: 8px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
 }
 
 .note-editor-footer {

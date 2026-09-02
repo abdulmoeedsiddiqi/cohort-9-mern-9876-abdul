@@ -113,13 +113,13 @@ describe('NoteEditorPage', () => {
     );
   });
 
-  it('hides the text editor and shows a placeholder for video type', async () => {
+  it('hides the text editor and shows the video recorder for video type', async () => {
     const user = userEvent.setup();
     renderAt('/notes/new');
 
     await user.click(screen.getByRole('tab', { name: 'Video' }));
 
     expect(screen.queryByRole('textbox', { name: 'Note content' })).not.toBeInTheDocument();
-    expect(screen.getByText('Video recording is coming soon.')).toBeInTheDocument();
+    expect(screen.getByText('Tap to record a video note')).toBeInTheDocument();
   });
 });

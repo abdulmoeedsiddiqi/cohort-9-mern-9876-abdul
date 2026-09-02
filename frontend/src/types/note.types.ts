@@ -1,5 +1,19 @@
 export type NoteType = 'TEXT' | 'VIDEO' | 'MIXED';
 
+export interface NoteAsset {
+  id: string;
+  noteId: string;
+  kind: 'VIDEO';
+  filePath: string;
+  mimeType: string;
+  durationSec: number | null;
+  thumbnailPath: string | null;
+  sizeBytes: number | null;
+  createdAt: string;
+  url: string;
+  thumbnailUrl: string | null;
+}
+
 export interface Note {
   id: string;
   userId: string;
@@ -14,6 +28,7 @@ export interface Note {
   deletedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  assets?: NoteAsset[];
 }
 
 export interface NoteCounts {

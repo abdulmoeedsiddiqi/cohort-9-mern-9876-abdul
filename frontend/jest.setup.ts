@@ -36,3 +36,12 @@ document.elementFromPoint = () => null;
 Range.prototype.getClientRects = () =>
   ({ length: 0, item: () => null, [Symbol.iterator]: Array.prototype[Symbol.iterator] }) as unknown as DOMRectList;
 Element.prototype.getBoundingClientRect = () => emptyClientRect;
+
+// jsdom doesn't implement the Blob URL registry the VideoRecorder relies on
+// to preview a recorded clip and capture a thumbnail frame.
+if (!('createObjectURL' in URL)) {
+  Object.assign(URL, {
+    createObjectURL: () => 'blob:mock-url',
+    revokeObjectURL: () => {},
+  });
+}

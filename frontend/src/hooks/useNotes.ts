@@ -74,3 +74,21 @@ export function usePurgeNote() {
     onSuccess: invalidate,
   });
 }
+
+export function useUploadVideoAsset() {
+  const invalidate = useInvalidateNotes();
+  return useMutation({
+    mutationFn: ({ noteId, input }: { noteId: string; input: notesApi.UploadVideoAssetInput }) =>
+      notesApi.uploadVideoAsset(noteId, input),
+    onSuccess: invalidate,
+  });
+}
+
+export function useDeleteVideoAsset() {
+  const invalidate = useInvalidateNotes();
+  return useMutation({
+    mutationFn: ({ noteId, assetId }: { noteId: string; assetId: string }) =>
+      notesApi.deleteVideoAsset(noteId, assetId),
+    onSuccess: invalidate,
+  });
+}

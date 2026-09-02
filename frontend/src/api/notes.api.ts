@@ -1,4 +1,4 @@
-import type { Note, NoteType, NotesListResult, TrashListResult } from '../types/note.types';
+import type { Note, NoteAsset, NoteType, NotesListResult, TrashListResult } from '../types/note.types';
 import { apiClient } from './client';
 
 export interface CreateNoteInput {
@@ -57,4 +57,26 @@ export async function restoreNote(id: string): Promise<Note> {
 
 export async function purgeNote(id: string): Promise<void> {
   await apiClient.delete(`/notes/${id}/purge`);
+}
+
+export interface UploadVideoAssetInput {
+  video: Blob;
+  thumbnail?: Blob | null;
+  durationSec: number;
+}
+
+export async function uploadVideoAsset(noteId: string, input: UploadVideoAssetInput): Promise<NoteAsset> {
+  const form = new FormData();
+  form.append('durationSec', String(Math.max(1, Math.round(input.durationSec))));
+  form.append('video', input.video, 'recording.webm');
+  if (input.thumbnail) {
+    form.append('thumbnail', input.thumbnail, 'thumbnail.jpg');
+  }
+
+  const res = await apiClient.post<{ asset: NoteAsset }>(`/notes/${noteId}/assets`, form);
+  return res.data.asset;
+}
+
+export async function deleteVideoAsset(noteId: string, assetId: string): Promise<void> {
+  await apiClient.delete(`/notes/${noteId}/assets/${assetId}`);
 }

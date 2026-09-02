@@ -37,17 +37,18 @@ describe('TiptapEditor', () => {
     expect(screen.getByLabelText('Heading 1')).toHaveAttribute('aria-pressed', 'true');
   });
 
-  it('applies a note-color class to the editor surface when noteColor is provided', () => {
+  it('applies a note-color class to the writing area only, leaving the toolbar neutral', () => {
     const { container } = render(<TiptapEditor content={null} onUpdate={jest.fn()} noteColor="purple" />);
 
-    expect(container.querySelector('.tiptap-editor')).toHaveClass('note-editor-surface-purple');
+    expect(container.querySelector('.tiptap-content')).toHaveClass('note-editor-surface-purple');
+    expect(container.querySelector('.tiptap-editor')?.className).toBe('tiptap-editor');
   });
 
-  it('has no note-color class on the editor surface when noteColor is omitted', () => {
+  it('has no note-color class on the writing area when noteColor is omitted', () => {
     const { container } = render(<TiptapEditor content={null} onUpdate={jest.fn()} />);
 
-    expect(container.querySelector('.tiptap-editor')).toHaveClass('tiptap-editor');
-    expect(container.querySelector('.tiptap-editor')?.className).toBe('tiptap-editor');
+    expect(container.querySelector('.tiptap-content')).toHaveClass('tiptap-content');
+    expect(container.querySelector('.tiptap-content')?.className).toBe('tiptap-content');
   });
 
   it('applies a text color and can remove it again', async () => {

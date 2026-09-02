@@ -1158,15 +1158,15 @@ body {
   background: var(--note-color-red);
 }
 
-:root[data-theme='dark'] .note-editor-surface-white .tiptap-content .ProseMirror,
-:root[data-theme='dark'] .note-editor-surface-yellow .tiptap-content .ProseMirror,
-:root[data-theme='dark'] .note-editor-surface-green .tiptap-content .ProseMirror {
+:root[data-theme='dark'] .note-editor-surface-white .ProseMirror,
+:root[data-theme='dark'] .note-editor-surface-yellow .ProseMirror,
+:root[data-theme='dark'] .note-editor-surface-green .ProseMirror {
   color: var(--note-card-text-dark);
 }
 
-:root[data-theme='dark'] .note-editor-surface-white .tiptap-content .ProseMirror p.is-editor-empty:first-child::before,
-:root[data-theme='dark'] .note-editor-surface-yellow .tiptap-content .ProseMirror p.is-editor-empty:first-child::before,
-:root[data-theme='dark'] .note-editor-surface-green .tiptap-content .ProseMirror p.is-editor-empty:first-child::before {
+:root[data-theme='dark'] .note-editor-surface-white .ProseMirror p.is-editor-empty:first-child::before,
+:root[data-theme='dark'] .note-editor-surface-yellow .ProseMirror p.is-editor-empty:first-child::before,
+:root[data-theme='dark'] .note-editor-surface-green .ProseMirror p.is-editor-empty:first-child::before {
   color: color-mix(in srgb, var(--note-card-text-dark) 60%, transparent);
 }
 

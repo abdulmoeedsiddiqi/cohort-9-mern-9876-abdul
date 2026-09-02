@@ -80,16 +80,17 @@ describe('NoteEditorPage', () => {
     expect(await screen.findByText('All notes screen')).toBeInTheDocument();
   });
 
-  it('tints the editor surface live as soon as a color swatch is picked', async () => {
+  it('tints the writing area live as soon as a color swatch is picked, leaving the toolbar neutral', async () => {
     const user = userEvent.setup();
     const { container } = renderAt('/notes/new');
 
-    expect(container.querySelector('.tiptap-editor')).toHaveClass('note-editor-surface-yellow');
+    expect(container.querySelector('.tiptap-content')).toHaveClass('note-editor-surface-yellow');
 
     await user.click(screen.getByLabelText('Purple'));
 
-    expect(container.querySelector('.tiptap-editor')).toHaveClass('note-editor-surface-purple');
-    expect(container.querySelector('.tiptap-editor')).not.toHaveClass('note-editor-surface-yellow');
+    expect(container.querySelector('.tiptap-content')).toHaveClass('note-editor-surface-purple');
+    expect(container.querySelector('.tiptap-content')).not.toHaveClass('note-editor-surface-yellow');
+    expect(container.querySelector('.tiptap-editor')?.className).toBe('tiptap-editor');
   });
 
   it('offers white as a selectable note color', async () => {
@@ -98,7 +99,7 @@ describe('NoteEditorPage', () => {
     const { container } = renderAt('/notes/new');
 
     await user.click(screen.getByLabelText('White'));
-    expect(container.querySelector('.tiptap-editor')).toHaveClass('note-editor-surface-white');
+    expect(container.querySelector('.tiptap-content')).toHaveClass('note-editor-surface-white');
 
     await user.type(screen.getByPlaceholderText('Untitled note'), 'White note');
     await user.click(screen.getByRole('button', { name: /Save note/ }));

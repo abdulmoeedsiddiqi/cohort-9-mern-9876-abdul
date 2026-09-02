@@ -40,9 +40,12 @@ export function TiptapEditor({ content, onUpdate, toolbarEnd, noteColor }: Tipta
   }
 
   return (
-    <div className={`tiptap-editor${noteColor ? ` note-editor-surface-${noteColor}` : ''}`}>
+    <div className="tiptap-editor">
       <EditorToolbar editor={editor} trailing={toolbarEnd} />
-      <EditorContent editor={editor} className="tiptap-content" />
+      <EditorContent
+        editor={editor}
+        className={`tiptap-content${noteColor ? ` note-editor-surface-${noteColor}` : ''}`}
+      />
     </div>
   );
 }

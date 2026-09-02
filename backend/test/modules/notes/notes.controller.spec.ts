@@ -95,6 +95,32 @@ describe('notes controller (integration)', () => {
     expect(res.body.notes[0].id).to.equal(pinned.body.note.id);
   });
 
+  it('searches notes by title case-insensitively', async () => {
+    const groceries = await request(app)
+      .post('/notes')
+      .set('Cookie', cookie)
+      .send({ title: 'Weekly groceries' });
+    await request(app).post('/notes').set('Cookie', cookie).send({ title: 'Meeting notes' });
+
+    const res = await request(app).get('/notes').query({ q: 'GROCER' }).set('Cookie', cookie);
+
+    expect(res.status).to.equal(200);
+    expect(res.body.notes).to.have.length(1);
+    expect(res.body.notes[0].id).to.equal(groceries.body.note.id);
+    expect(res.body.pagination.total).to.equal(1);
+    expect(res.body.counts).to.deep.equal({ all: 2, pinned: 0, video: 0, trash: 0 });
+  });
+
+  it('returns no notes when the search term matches nothing', async () => {
+    await request(app).post('/notes').set('Cookie', cookie).send({ title: 'Weekly groceries' });
+
+    const res = await request(app).get('/notes').query({ q: 'nonexistentterm' }).set('Cookie', cookie);
+
+    expect(res.status).to.equal(200);
+    expect(res.body.notes).to.have.length(0);
+    expect(res.body.pagination.total).to.equal(0);
+  });
+
   it('gets a single note by id', async () => {
     const created = await request(app).post('/notes').set('Cookie', cookie).send({ title: 'Solo note' });
 

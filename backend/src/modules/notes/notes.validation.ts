@@ -22,4 +22,5 @@ export const listNotesQuerySchema = z.object({
   page: z.coerce.number().int().min(1).optional().default(1),
   pageSize: z.coerce.number().int().min(1).max(50).optional().default(8),
   filter: z.enum(['all', 'pinned', 'video']).optional().default('all'),
+  q: z.string().trim().min(1).max(200).optional(),
 });

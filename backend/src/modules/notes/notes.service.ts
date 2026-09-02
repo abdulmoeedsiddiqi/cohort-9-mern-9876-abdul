@@ -26,22 +26,28 @@ export async function createNote(
   });
 }
 
+export interface ListNotesOptions {
+  page: number;
+  pageSize: number;
+  filter?: NoteListFilter;
+  q?: string;
+}
+
 export async function listNotes(
   userId: string,
-  page: number,
-  pageSize: number,
-  filter: NoteListFilter = 'all',
+  options: ListNotesOptions,
   repository: NotesRepository = notesRepository,
 ): Promise<{ notes: NoteWithAssets[]; pagination: PaginationMeta; counts: NoteCounts }> {
-  const [notes, total, pinned, video, trash] = await Promise.all([
-    repository.findManyForUser({ userId, page, pageSize, filter }),
+  const { page, pageSize, filter = 'all', q } = options;
+
+  const [notes, total, pinned, video, trash, filteredTotal] = await Promise.all([
+    repository.findManyForUser({ userId, page, pageSize, filter, q }),
     repository.countForUser(userId),
     repository.countPinnedForUser(userId),
     repository.countVideoForUser(userId),
     repository.countTrashForUser(userId),
+    repository.countMatchingForUser(userId, filter, q),
   ]);
-
-  const filteredTotal = filter === 'pinned' ? pinned : filter === 'video' ? video : total;
 
   return {
     notes,

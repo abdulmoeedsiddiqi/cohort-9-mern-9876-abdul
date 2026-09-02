@@ -9,6 +9,7 @@ interface ListOptions {
   page: number;
   pageSize: number;
   filter?: NoteListFilter;
+  q?: string;
 }
 
 interface CreateNoteData {
@@ -34,14 +35,27 @@ function filterWhere(filter?: NoteListFilter): Prisma.NoteWhereInput {
   return {};
 }
 
-export function findManyForUser({ userId, page, pageSize, filter }: ListOptions) {
+function searchWhere(q?: string): Prisma.NoteWhereInput {
+  const trimmed = q?.trim();
+  return trimmed ? { title: { contains: trimmed, mode: 'insensitive' } } : {};
+}
+
+function listWhere(userId: string, filter?: NoteListFilter, q?: string): Prisma.NoteWhereInput {
+  return { userId, deletedAt: null, ...filterWhere(filter), ...searchWhere(q) };
+}
+
+export function findManyForUser({ userId, page, pageSize, filter, q }: ListOptions) {
   return prisma.note.findMany({
-    where: { userId, deletedAt: null, ...filterWhere(filter) },
+    where: listWhere(userId, filter, q),
     orderBy: { updatedAt: 'desc' },
     skip: (page - 1) * pageSize,
     take: pageSize,
     include: { assets: true },
   });
+}
+
+export function countMatchingForUser(userId: string, filter?: NoteListFilter, q?: string) {
+  return prisma.note.count({ where: listWhere(userId, filter, q) });
 }
 
 export function countForUser(userId: string) {

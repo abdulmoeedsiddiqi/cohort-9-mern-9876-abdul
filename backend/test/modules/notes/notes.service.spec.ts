@@ -17,21 +17,30 @@ interface FakeNote {
 function makeFakeRepository(initialNotes: FakeNote[] = []) {
   const notes = [...initialNotes];
 
+  function matching(userId: string, filter?: 'all' | 'pinned' | 'video', q?: string) {
+    const trimmedQ = q?.trim().toLowerCase();
+    return notes.filter((n) => {
+      if (n.userId !== userId || n.deletedAt) return false;
+      if (filter === 'pinned' && !n.pinned) return false;
+      if (filter === 'video' && n.type === 'TEXT') return false;
+      if (trimmedQ && !n.title.toLowerCase().includes(trimmedQ)) return false;
+      return true;
+    });
+  }
+
   return {
     notes,
     findManyForUser: async ({
       userId,
       filter,
+      q,
     }: {
       userId: string;
       filter?: 'all' | 'pinned' | 'video';
-    }) =>
-      notes.filter((n) => {
-        if (n.userId !== userId || n.deletedAt) return false;
-        if (filter === 'pinned') return n.pinned;
-        if (filter === 'video') return n.type !== 'TEXT';
-        return true;
-      }),
+      q?: string;
+    }) => matching(userId, filter, q),
+    countMatchingForUser: async (userId: string, filter?: 'all' | 'pinned' | 'video', q?: string) =>
+      matching(userId, filter, q).length,
     countForUser: async (userId: string) => notes.filter((n) => n.userId === userId && !n.deletedAt).length,
     countPinnedForUser: async (userId: string) =>
       notes.filter((n) => n.userId === userId && !n.deletedAt && n.pinned).length,
@@ -107,7 +116,7 @@ describe('notes.service', () => {
       await notesService.createNote('user-1', { title: 'Note 2', type: 'VIDEO' }, repository);
       await notesService.createNote('user-2', { title: 'Someone else' }, repository);
 
-      const result = await notesService.listNotes('user-1', 1, 8, 'all', repository);
+      const result = await notesService.listNotes('user-1', { page: 1, pageSize: 8 }, repository);
 
       expect(result.notes).to.have.length(2);
       expect(result.counts).to.deep.equal({ all: 2, pinned: 0, video: 1, trash: 0 });
@@ -119,7 +128,7 @@ describe('notes.service', () => {
       await notesService.createNote('user-1', { title: 'Text note' }, repository);
       await notesService.createNote('user-1', { title: 'Video note', type: 'VIDEO' }, repository);
 
-      const result = await notesService.listNotes('user-1', 1, 8, 'video', repository);
+      const result = await notesService.listNotes('user-1', { page: 1, pageSize: 8, filter: 'video' }, repository);
 
       expect(result.notes.map((n) => n.title)).to.deep.equal(['Video note']);
       expect(result.pagination.total).to.equal(1);
@@ -131,10 +140,36 @@ describe('notes.service', () => {
       await notesService.createNote('user-1', { title: 'Not pinned' }, repository);
       await notesService.updateNote('user-1', pinned.id, { pinned: true }, repository);
 
-      const result = await notesService.listNotes('user-1', 1, 8, 'pinned', repository);
+      const result = await notesService.listNotes('user-1', { page: 1, pageSize: 8, filter: 'pinned' }, repository);
 
       expect(result.notes.map((n) => n.title)).to.deep.equal(['Pinned']);
       expect(result.pagination.total).to.equal(1);
+    });
+
+    it('searches by title case-insensitively when q is given', async () => {
+      const repository = makeFakeRepository();
+      await notesService.createNote('user-1', { title: 'Grocery list' }, repository);
+      await notesService.createNote('user-1', { title: 'Meeting notes' }, repository);
+
+      const result = await notesService.listNotes('user-1', { page: 1, pageSize: 8, q: 'grocery' }, repository);
+
+      expect(result.notes.map((n) => n.title)).to.deep.equal(['Grocery list']);
+      expect(result.pagination.total).to.equal(1);
+      expect(result.counts).to.deep.equal({ all: 2, pinned: 0, video: 0, trash: 0 });
+    });
+
+    it('combines filter and q together', async () => {
+      const repository = makeFakeRepository();
+      await notesService.createNote('user-1', { title: 'Grocery list', type: 'VIDEO' }, repository);
+      await notesService.createNote('user-1', { title: 'Grocery reminder' }, repository);
+
+      const result = await notesService.listNotes(
+        'user-1',
+        { page: 1, pageSize: 8, filter: 'video', q: 'grocery' },
+        repository,
+      );
+
+      expect(result.notes.map((n) => n.title)).to.deep.equal(['Grocery list']);
     });
   });
 

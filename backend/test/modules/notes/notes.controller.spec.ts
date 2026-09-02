@@ -121,6 +121,25 @@ describe('notes controller (integration)', () => {
     expect(res.body.pagination.total).to.equal(0);
   });
 
+  it('exports the user\'s active notes as a downloadable JSON file', async () => {
+    await request(app).post('/notes').set('Cookie', cookie).send({ title: 'Keep me', content: 'hello' });
+    const trashed = await request(app).post('/notes').set('Cookie', cookie).send({ title: 'Trash me' });
+    await request(app).delete(`/notes/${trashed.body.note.id}`).set('Cookie', cookie);
+
+    const res = await request(app).get('/notes/export').set('Cookie', cookie);
+
+    expect(res.status).to.equal(200);
+    expect(res.headers['content-disposition']).to.match(/^attachment; filename="notes-export-.*\.json"$/);
+    expect(res.body.notes).to.have.length(1);
+    expect(res.body.notes[0]).to.include({ title: 'Keep me', content: 'hello', type: 'TEXT', color: 'yellow' });
+    expect(res.body.exportedAt).to.be.a('string');
+  });
+
+  it('rejects an unauthenticated export request', async () => {
+    const res = await request(app).get('/notes/export');
+    expect(res.status).to.equal(401);
+  });
+
   it('gets a single note by id', async () => {
     const created = await request(app).post('/notes').set('Cookie', cookie).send({ title: 'Solo note' });
 

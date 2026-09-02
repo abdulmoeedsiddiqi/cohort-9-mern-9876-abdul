@@ -5,7 +5,14 @@ import { ApiError } from '../../utils/ApiError';
 import { countWords } from '../../utils/wordCount';
 import type { NoteListFilter } from './notes.repository';
 import * as notesRepository from './notes.repository';
-import { CreateNoteInput, NoteCounts, NoteWithAssets, PaginationMeta, UpdateNoteInput } from './notes.types';
+import {
+  CreateNoteInput,
+  NoteCounts,
+  NotesExport,
+  NoteWithAssets,
+  PaginationMeta,
+  UpdateNoteInput,
+} from './notes.types';
 
 type NotesRepository = typeof notesRepository;
 
@@ -61,6 +68,26 @@ export async function listNotes(
       totalPages: Math.max(1, Math.ceil(filteredTotal / pageSize)),
     },
     counts: { all: total, pinned, video, trash },
+  };
+}
+
+export async function exportNotes(
+  userId: string,
+  repository: NotesRepository = notesRepository,
+): Promise<NotesExport> {
+  const notes = await repository.findAllForExport(userId);
+
+  return {
+    exportedAt: new Date().toISOString(),
+    notes: notes.map((note) => ({
+      title: note.title,
+      content: note.content,
+      type: note.type,
+      color: note.color,
+      pinned: note.pinned,
+      createdAt: note.createdAt.toISOString(),
+      updatedAt: note.updatedAt.toISOString(),
+    })),
   };
 }
 

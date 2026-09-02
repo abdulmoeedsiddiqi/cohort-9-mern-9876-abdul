@@ -76,6 +76,22 @@ export function countTrashForUser(userId: string) {
   return prisma.note.count({ where: { userId, deletedAt: { not: null } } });
 }
 
+export function findAllForExport(userId: string) {
+  return prisma.note.findMany({
+    where: { userId, deletedAt: null },
+    orderBy: { createdAt: 'asc' },
+    select: {
+      title: true,
+      content: true,
+      type: true,
+      color: true,
+      pinned: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+}
+
 export function findOneForUser(id: string, userId: string) {
   return prisma.note.findFirst({ where: { id, userId, deletedAt: null }, include: { assets: true } });
 }

@@ -10,6 +10,7 @@ export const notesRouter = Router();
 notesRouter.use(authenticate);
 
 notesRouter.get('/', notesController.list);
+notesRouter.get('/export', notesController.exportNotes);
 notesRouter.get('/trash', notesController.listTrash);
 notesRouter.post('/', notesController.create);
 notesRouter.get('/:id', notesController.getOne);

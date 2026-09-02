@@ -30,3 +30,18 @@ export interface PaginationMeta {
   total: number;
   totalPages: number;
 }
+
+export interface ExportedNote {
+  title: string;
+  content: unknown;
+  type: NoteType;
+  color: string;
+  pinned: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NotesExport {
+  exportedAt: string;
+  notes: ExportedNote[];
+}

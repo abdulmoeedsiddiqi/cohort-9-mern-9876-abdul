@@ -24,6 +24,13 @@ export const list = asyncHandler(async (req: Request, res: Response) => {
   });
 });
 
+export const exportNotes = asyncHandler(async (req: Request, res: Response) => {
+  const result = await notesService.exportNotes(req.user!.id);
+  const filename = `notes-export-${new Date().toISOString().slice(0, 10)}.json`;
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.status(200).json(result);
+});
+
 export const create = asyncHandler(async (req: Request, res: Response) => {
   const parsed = createNoteSchema.safeParse(req.body);
   if (!parsed.success) {

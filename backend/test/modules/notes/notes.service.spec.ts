@@ -12,6 +12,8 @@ interface FakeNote {
   pinned: boolean;
   wordCount: number;
   deletedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 function makeFakeRepository(initialNotes: FakeNote[] = []) {
@@ -54,10 +56,23 @@ function makeFakeRepository(initialNotes: FakeNote[] = []) {
       notes.filter((n) => n.userId === userId && n.deletedAt),
     findOneTrashedForUser: async (id: string, userId: string) =>
       notes.find((n) => n.id === id && n.userId === userId && n.deletedAt) ?? null,
+    findAllForExport: async (userId: string) =>
+      notes
+        .filter((n) => n.userId === userId && !n.deletedAt)
+        .map((n) => ({
+          title: n.title,
+          content: n.content,
+          type: n.type,
+          color: n.color,
+          pinned: n.pinned,
+          createdAt: n.createdAt,
+          updatedAt: n.updatedAt,
+        })),
     create: async (
       userId: string,
       data: { title: string; content?: unknown; type: FakeNote['type']; color: string; wordCount: number },
     ) => {
+      const now = new Date();
       const note: FakeNote = {
         id: `note-${notes.length + 1}`,
         userId,
@@ -68,6 +83,8 @@ function makeFakeRepository(initialNotes: FakeNote[] = []) {
         pinned: false,
         wordCount: data.wordCount,
         deletedAt: null,
+        createdAt: now,
+        updatedAt: now,
       };
       notes.push(note);
       return note;
@@ -75,6 +92,7 @@ function makeFakeRepository(initialNotes: FakeNote[] = []) {
     update: async (id: string, data: Partial<FakeNote>) => {
       const note = notes.find((n) => n.id === id)!;
       Object.assign(note, Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined)));
+      note.updatedAt = new Date();
       return note;
     },
     softDelete: async (id: string) => {
@@ -170,6 +188,31 @@ describe('notes.service', () => {
       );
 
       expect(result.notes.map((n) => n.title)).to.deep.equal(['Grocery list']);
+    });
+  });
+
+  describe('exportNotes', () => {
+    it('returns only the active notes for the user, in creation order', async () => {
+      const repository = makeFakeRepository();
+      await notesService.createNote('user-1', { title: 'First', content: 'a' }, repository);
+      const trashed = await notesService.createNote('user-1', { title: 'Trashed' }, repository);
+      await notesService.softDeleteNote('user-1', trashed.id, repository);
+      await notesService.createNote('user-1', { title: 'Second', type: 'VIDEO', color: 'blue' }, repository);
+      await notesService.createNote('user-2', { title: 'Someone else' }, repository);
+
+      const result = await notesService.exportNotes('user-1', repository);
+
+      expect(result.notes.map((n) => n.title)).to.deep.equal(['First', 'Second']);
+      expect(result.notes[1]).to.include({ type: 'VIDEO', color: 'blue', pinned: false });
+      expect(result.exportedAt).to.be.a('string');
+    });
+
+    it('returns an empty list when the user has no notes', async () => {
+      const repository = makeFakeRepository();
+
+      const result = await notesService.exportNotes('user-1', repository);
+
+      expect(result.notes).to.deep.equal([]);
     });
   });
 

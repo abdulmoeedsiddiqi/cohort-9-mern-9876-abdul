@@ -6,6 +6,7 @@ import { env } from './config/env';
 import { httpLogger } from './logger/httpLogger';
 import { errorHandler } from './middleware/errorHandler';
 import { notFound } from './middleware/notFound';
+import { UPLOADS_ROOT } from './lib/storage';
 import { authRouter } from './modules/auth/auth.routes';
 import { notesRouter } from './modules/notes/notes.routes';
 
@@ -16,6 +17,7 @@ export function createApp(): Express {
   app.use(cors({ origin: env.corsOrigin, credentials: true }));
   app.use(express.json());
   app.use(cookieParser());
+  app.use('/uploads', express.static(UPLOADS_ROOT));
 
   app.get('/health', (_req: Request, res: Response) => {
     res.status(200).json({ status: 'ok', env: env.nodeEnv });

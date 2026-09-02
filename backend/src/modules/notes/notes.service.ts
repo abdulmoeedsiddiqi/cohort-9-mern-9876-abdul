@@ -3,7 +3,7 @@ import type { Note } from '@prisma/client';
 import { ApiError } from '../../utils/ApiError';
 import { countWords } from '../../utils/wordCount';
 import * as notesRepository from './notes.repository';
-import { CreateNoteInput, NoteCounts, PaginationMeta, UpdateNoteInput } from './notes.types';
+import { CreateNoteInput, NoteCounts, NoteWithAssets, PaginationMeta, UpdateNoteInput } from './notes.types';
 
 type NotesRepository = typeof notesRepository;
 
@@ -50,7 +50,7 @@ export async function getNote(
   userId: string,
   noteId: string,
   repository: NotesRepository = notesRepository,
-): Promise<Note> {
+): Promise<NoteWithAssets> {
   const note = await repository.findOneForUser(noteId, userId);
   if (!note) {
     throw ApiError.notFound('Note not found');

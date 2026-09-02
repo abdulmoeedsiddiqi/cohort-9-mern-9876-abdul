@@ -1,6 +1,8 @@
 import { Router } from 'express';
 
 import { authenticate } from '../../middleware/authenticate';
+import { uploadVideo } from '../../middleware/upload';
+import * as notesAssetsController from './notes-assets.controller';
 import * as notesController from './notes.controller';
 
 export const notesRouter = Router();
@@ -15,3 +17,5 @@ notesRouter.patch('/:id', notesController.update);
 notesRouter.post('/:id/restore', notesController.restore);
 notesRouter.delete('/:id/purge', notesController.purge);
 notesRouter.delete('/:id', notesController.remove);
+notesRouter.post('/:id/assets', uploadVideo, notesAssetsController.upload);
+notesRouter.delete('/:id/assets/:assetId', notesAssetsController.remove);

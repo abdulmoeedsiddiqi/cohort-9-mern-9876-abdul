@@ -53,7 +53,7 @@ export function countTrashForUser(userId: string) {
 }
 
 export function findOneForUser(id: string, userId: string) {
-  return prisma.note.findFirst({ where: { id, userId, deletedAt: null } });
+  return prisma.note.findFirst({ where: { id, userId, deletedAt: null }, include: { assets: true } });
 }
 
 export function findManyTrashForUser({ userId, page, pageSize }: ListOptions) {

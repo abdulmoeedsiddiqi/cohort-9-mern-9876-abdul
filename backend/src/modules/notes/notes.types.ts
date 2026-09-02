@@ -1,4 +1,6 @@
-import type { NoteType } from '@prisma/client';
+import type { Note, NoteAsset, NoteType } from '@prisma/client';
+
+export type NoteWithAssets = Note & { assets: NoteAsset[] };
 
 export interface CreateNoteInput {
   title: string;

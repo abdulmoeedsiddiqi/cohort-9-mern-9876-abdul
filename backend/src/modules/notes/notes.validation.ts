@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { EXPORT_FORMATS } from './notes-export-formats';
 
-export const NOTE_COLORS = ['yellow', 'blue', 'green', 'purple', 'pink', 'orange', 'red'] as const;
+export const NOTE_COLORS = ['white', 'yellow', 'blue', 'green', 'purple', 'pink', 'orange', 'red'] as const;
 const NOTE_TYPES = ['TEXT', 'VIDEO', 'MIXED'] as const;
 
 export const createNoteSchema = z.object({

@@ -52,6 +52,16 @@ describe('notes controller (integration)', () => {
     });
   });
 
+  it('accepts white as a note color', async () => {
+    const res = await request(app)
+      .post('/notes')
+      .set('Cookie', cookie)
+      .send({ title: 'White note', content: 'Snowy', color: 'white' });
+
+    expect(res.status).to.equal(201);
+    expect(res.body.note).to.include({ color: 'white' });
+  });
+
   it('rejects an unauthenticated request', async () => {
     const res = await request(app).post('/notes').send({ title: 'Nope' });
     expect(res.status).to.equal(401);

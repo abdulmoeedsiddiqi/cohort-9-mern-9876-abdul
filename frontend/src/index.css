@@ -651,6 +651,39 @@ body {
   opacity: 0.7;
 }
 
+.note-card-trashed {
+  cursor: default;
+}
+
+.note-card-trashed .note-card-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  opacity: 1;
+}
+
+.note-card-trash-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.note-card-trash-actions button {
+  flex: 1;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.5);
+  color: inherit;
+  padding: 5px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.note-card-trash-actions button.danger {
+  color: #dc2626;
+  border-color: rgba(220, 38, 38, 0.35);
+}
+
 .note-card-new {
   align-items: center;
   justify-content: center;

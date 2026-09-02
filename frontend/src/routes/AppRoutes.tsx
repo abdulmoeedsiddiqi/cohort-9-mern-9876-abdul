@@ -4,6 +4,7 @@ import { DashboardLayout } from '../components/layout/DashboardLayout';
 import { AuthPage } from '../pages/AuthPage';
 import { NoteEditorPage } from '../pages/NoteEditorPage';
 import { NotesPage } from '../pages/NotesPage';
+import { TrashPage } from '../pages/TrashPage';
 import { GuestRoute } from './GuestRoute';
 import { ProtectedRoute } from './ProtectedRoute';
 
@@ -31,7 +32,7 @@ export function AppRoutes() {
           <Route path="/notes" element={<NotesPage />} />
           <Route path="/notes/pinned" element={<NotesPage filter="pinned" />} />
           <Route path="/notes/video" element={<NotesPage filter="video" />} />
-          <Route path="/notes/trash" element={<ComingSoon title="Trash" />} />
+          <Route path="/notes/trash" element={<TrashPage />} />
         </Route>
         <Route path="/notes/new" element={<NoteEditorPage />} />
         <Route path="/notes/:id" element={<NoteEditorPage />} />

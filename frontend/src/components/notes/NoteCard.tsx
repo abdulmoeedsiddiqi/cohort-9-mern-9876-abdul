@@ -3,26 +3,8 @@ import { useNavigate } from 'react-router-dom';
 
 import { useDeleteNote, useUpdateNote } from '../../hooks/useNotes';
 import { resolveAssetUrl } from '../../lib/assetUrl';
+import { formatDuration, formatRelativeTime } from '../../lib/noteCardFormat';
 import type { Note } from '../../types/note.types';
-
-function formatRelativeTime(iso: string): string {
-  const diffMs = Date.now() - new Date(iso).getTime();
-  const diffMin = Math.round(diffMs / 60000);
-  if (diffMin < 1) return 'just now';
-  if (diffMin < 60) return `${diffMin}m ago`;
-  const diffHr = Math.round(diffMin / 60);
-  if (diffHr < 24) return `${diffHr}h ago`;
-  const diffDay = Math.round(diffHr / 24);
-  return `${diffDay}d ago`;
-}
-
-function formatDuration(totalSeconds: number): string {
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = Math.round(totalSeconds % 60)
-    .toString()
-    .padStart(2, '0');
-  return `${minutes}:${seconds}`;
-}
 
 export function NoteCard({ note }: { note: Note }) {
   const navigate = useNavigate();

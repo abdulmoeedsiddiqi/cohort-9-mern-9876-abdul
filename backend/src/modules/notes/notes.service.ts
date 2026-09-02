@@ -1,5 +1,6 @@
 import type { Note } from '@prisma/client';
 
+import { emitNoteEvent } from '../../socket/notesEvents';
 import { ApiError } from '../../utils/ApiError';
 import { countWords } from '../../utils/wordCount';
 import type { NoteListFilter } from './notes.repository';
@@ -17,13 +18,15 @@ export async function createNote(
   input: CreateNoteInput,
   repository: NotesRepository = notesRepository,
 ): Promise<Note> {
-  return repository.create(userId, {
+  const note = await repository.create(userId, {
     title: input.title,
     content: input.content,
     type: input.type ?? 'TEXT',
     color: input.color ?? 'yellow',
     wordCount: computeWordCount(input.content),
   });
+  emitNoteEvent(userId, 'note:created', note);
+  return note;
 }
 
 export interface ListNotesOptions {
@@ -86,7 +89,7 @@ export async function updateNote(
 
   const wordCount = input.content !== undefined ? computeWordCount(input.content) : undefined;
 
-  return repository.update(noteId, {
+  const updated = await repository.update(noteId, {
     title: input.title,
     content: input.content,
     type: input.type,
@@ -94,6 +97,8 @@ export async function updateNote(
     pinned: input.pinned,
     wordCount,
   });
+  emitNoteEvent(userId, 'note:updated', updated);
+  return updated;
 }
 
 export async function softDeleteNote(
@@ -107,6 +112,7 @@ export async function softDeleteNote(
   }
 
   await repository.softDelete(noteId);
+  emitNoteEvent(userId, 'note:deleted', { id: noteId });
 }
 
 export async function listTrash(
@@ -136,7 +142,9 @@ export async function restoreNote(
     throw ApiError.notFound('Note not found in trash');
   }
 
-  return repository.restore(noteId);
+  const restored = await repository.restore(noteId);
+  emitNoteEvent(userId, 'note:restored', restored);
+  return restored;
 }
 
 export async function purgeNote(
@@ -150,4 +158,5 @@ export async function purgeNote(
   }
 
   await repository.purge(noteId);
+  emitNoteEvent(userId, 'note:purged', { id: noteId });
 }

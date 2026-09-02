@@ -89,7 +89,7 @@ export function NoteEditorPage() {
     }
     setSummaryError(null);
     try {
-      const updated = await summarizeNote.mutateAsync(id);
+      const updated = await summarizeNote.mutateAsync({ id, content });
       setSummary(updated.summary);
       setIsSummaryDismissed(false);
     } catch (err) {

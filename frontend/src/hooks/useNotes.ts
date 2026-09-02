@@ -78,7 +78,10 @@ export function usePurgeNote() {
 export function useSummarizeNote() {
   const invalidate = useInvalidateNotes();
   return useMutation({
-    mutationFn: notesApi.summarizeNote,
+    mutationFn: (input: string | { id: string; content?: unknown }) =>
+      typeof input === 'string'
+        ? notesApi.summarizeNote(input)
+        : notesApi.summarizeNote(input.id, input.content),
     onSuccess: invalidate,
   });
 }

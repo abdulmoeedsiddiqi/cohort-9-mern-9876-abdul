@@ -63,8 +63,16 @@ export async function purgeNote(id: string): Promise<void> {
   await apiClient.delete(`/notes/${id}/purge`);
 }
 
-export async function summarizeNote(id: string): Promise<Note> {
-  const res = await apiClient.post<{ note: Note }>(`/notes/${id}/summarize`);
+export async function summarizeNote(
+  idOrInput: string | { id: string; content?: unknown },
+  maybeContent?: unknown,
+): Promise<Note> {
+  const id = typeof idOrInput === 'string' ? idOrInput : idOrInput.id;
+  const content = typeof idOrInput === 'string' ? maybeContent : idOrInput.content;
+  const res = await apiClient.post<{ note: Note }>(
+    `/notes/${id}/summarize`,
+    content !== undefined ? { content } : undefined,
+  );
   return res.data.note;
 }
 

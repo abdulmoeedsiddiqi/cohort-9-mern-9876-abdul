@@ -3,7 +3,9 @@ import type { FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { ThemeToggle } from '../components/common/ThemeToggle';
+import { TiptapEditor } from '../components/editor/TiptapEditor';
 import { useCreateNote, useNote, useUpdateNote } from '../hooks/useNotes';
+import { countWords, extractPlainText } from '../lib/tiptapText';
 import type { NoteType } from '../types/note.types';
 
 const COLORS: { value: string; label: string }[] = [
@@ -22,9 +24,14 @@ const TYPES: { value: NoteType; label: string }[] = [
   { value: 'MIXED', label: 'Mixed' },
 ];
 
-function countWords(text: string): number {
-  const trimmed = text.trim();
-  return trimmed ? trimmed.split(/\s+/).length : 0;
+function toEditorContent(raw: unknown): string | object | null {
+  if (typeof raw === 'string') {
+    return raw;
+  }
+  if (raw && typeof raw === 'object') {
+    return raw as object;
+  }
+  return null;
 }
 
 export function NoteEditorPage() {
@@ -37,7 +44,8 @@ export function NoteEditorPage() {
   const updateNote = useUpdateNote();
 
   const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
+  const [content, setContent] = useState<unknown>(undefined);
+  const [wordCount, setWordCount] = useState(0);
   const [type, setType] = useState<NoteType>('TEXT');
   const [color, setColor] = useState('yellow');
   const [error, setError] = useState<string | null>(null);
@@ -45,9 +53,14 @@ export function NoteEditorPage() {
   useEffect(() => {
     if (existingNote) {
       setTitle(existingNote.title);
-      setContent(typeof existingNote.content === 'string' ? existingNote.content : '');
+      setContent(existingNote.content);
       setType(existingNote.type);
       setColor(existingNote.color);
+      const plainText =
+        typeof existingNote.content === 'string'
+          ? existingNote.content
+          : extractPlainText(existingNote.content);
+      setWordCount(countWords(plainText));
     }
   }, [existingNote]);
 
@@ -120,12 +133,12 @@ export function NoteEditorPage() {
         </div>
 
         {type !== 'VIDEO' && (
-          <textarea
-            className="note-editor-textarea"
-            value={content}
-            onChange={(event) => setContent(event.target.value)}
-            placeholder="Start writing…"
-            rows={10}
+          <TiptapEditor
+            content={toEditorContent(existingNote?.content)}
+            onUpdate={(json, count) => {
+              setContent(json);
+              setWordCount(count);
+            }}
           />
         )}
 
@@ -153,7 +166,7 @@ export function NoteEditorPage() {
               />
             ))}
           </div>
-          <span className="note-editor-word-count">{countWords(content)} words</span>
+          <span className="note-editor-word-count">{wordCount} words</span>
         </div>
       </form>
     </div>

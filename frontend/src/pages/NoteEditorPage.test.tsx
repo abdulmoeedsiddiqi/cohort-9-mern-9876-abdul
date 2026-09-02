@@ -59,17 +59,18 @@ describe('NoteEditorPage', () => {
     renderAt('/notes/new');
 
     await user.type(screen.getByPlaceholderText('Untitled note'), 'My new note');
-    await user.type(screen.getByPlaceholderText('Start writing…'), 'Hello world');
+    const contentEditor = screen.getByRole('textbox', { name: 'Note content' });
+    await user.click(contentEditor);
+    await user.type(contentEditor, 'Hello world');
     await user.click(screen.getByLabelText('Blue'));
     await user.click(screen.getByRole('button', { name: /Save note/ }));
 
     await waitFor(() => expect(mockedNotesApi.createNote).toHaveBeenCalled());
-    expect(mockedNotesApi.createNote.mock.calls[0]?.[0]).toEqual({
-      title: 'My new note',
-      content: 'Hello world',
-      type: 'TEXT',
-      color: 'blue',
-    });
+    const payload = mockedNotesApi.createNote.mock.calls[0]?.[0];
+    expect(payload?.title).toBe('My new note');
+    expect(payload?.color).toBe('blue');
+    expect(payload?.type).toBe('TEXT');
+    expect(JSON.stringify(payload?.content)).toContain('Hello world');
   });
 
   it('shows a validation error when saving without a title', async () => {
@@ -87,7 +88,7 @@ describe('NoteEditorPage', () => {
     renderAt('/notes/note-1');
 
     expect(await screen.findByDisplayValue('Existing note')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('Some existing content')).toBeInTheDocument();
+    expect(await screen.findByText('Some existing content')).toBeInTheDocument();
     expect(screen.getByLabelText('Blue')).toHaveAttribute('aria-pressed', 'true');
   });
 
@@ -112,13 +113,13 @@ describe('NoteEditorPage', () => {
     );
   });
 
-  it('hides the textarea and shows a placeholder for video type', async () => {
+  it('hides the text editor and shows a placeholder for video type', async () => {
     const user = userEvent.setup();
     renderAt('/notes/new');
 
     await user.click(screen.getByRole('tab', { name: 'Video' }));
 
-    expect(screen.queryByPlaceholderText('Start writing…')).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: 'Note content' })).not.toBeInTheDocument();
     expect(screen.getByText('Video recording is coming soon.')).toBeInTheDocument();
   });
 });

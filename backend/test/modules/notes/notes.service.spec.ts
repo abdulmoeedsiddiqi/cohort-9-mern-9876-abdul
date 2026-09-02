@@ -68,6 +68,35 @@ function makeFakeRepository(initialNotes: FakeNote[] = []) {
           createdAt: n.createdAt,
           updatedAt: n.updatedAt,
         })),
+    createManyForUser: async (
+      userId: string,
+      rows: {
+        title: string;
+        content?: unknown;
+        type: FakeNote['type'];
+        color: string;
+        pinned: boolean;
+        wordCount: number;
+      }[],
+    ) => {
+      const now = new Date();
+      for (const row of rows) {
+        notes.push({
+          id: `note-${notes.length + 1}`,
+          userId,
+          title: row.title,
+          content: row.content ?? null,
+          type: row.type,
+          color: row.color,
+          pinned: row.pinned,
+          wordCount: row.wordCount,
+          deletedAt: null,
+          createdAt: now,
+          updatedAt: now,
+        });
+      }
+      return rows.length;
+    },
     create: async (
       userId: string,
       data: { title: string; content?: unknown; type: FakeNote['type']; color: string; wordCount: number },
@@ -213,6 +242,37 @@ describe('notes.service', () => {
       const result = await notesService.exportNotes('user-1', repository);
 
       expect(result.notes).to.deep.equal([]);
+    });
+  });
+
+  describe('importNotes', () => {
+    it('creates a note per entry, defaulting type/color/pinned and computing wordCount', async () => {
+      const repository = makeFakeRepository();
+
+      const result = await notesService.importNotes(
+        'user-1',
+        [
+          { title: 'Imported 1', content: 'one two three' },
+          { title: 'Imported 2', type: 'VIDEO', color: 'blue', pinned: true },
+        ],
+        repository,
+      );
+
+      expect(result.imported).to.equal(2);
+      const created = repository.notes.filter((n) => n.userId === 'user-1');
+      expect(created).to.have.length(2);
+      expect(created[0]).to.include({ title: 'Imported 1', type: 'TEXT', color: 'yellow', wordCount: 3 });
+      expect(created[1]).to.include({ title: 'Imported 2', type: 'VIDEO', color: 'blue', pinned: true });
+    });
+
+    it('does not affect other users\' notes', async () => {
+      const repository = makeFakeRepository();
+      await notesService.createNote('user-2', { title: 'Not mine' }, repository);
+
+      await notesService.importNotes('user-1', [{ title: 'Mine' }], repository);
+
+      expect(repository.notes.filter((n) => n.userId === 'user-2')).to.have.length(1);
+      expect(repository.notes.filter((n) => n.userId === 'user-1')).to.have.length(1);
     });
   });
 

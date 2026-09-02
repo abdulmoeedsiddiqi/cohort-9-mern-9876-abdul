@@ -20,6 +20,15 @@ interface CreateNoteData {
   wordCount: number;
 }
 
+interface ImportNoteRow {
+  title: string;
+  content?: unknown;
+  type: NoteType;
+  color: string;
+  pinned: boolean;
+  wordCount: number;
+}
+
 interface UpdateNoteData {
   title?: string;
   content?: unknown;
@@ -120,6 +129,21 @@ export function create(userId: string, data: CreateNoteData) {
       ...(data.content !== undefined ? { content: data.content as Prisma.InputJsonValue } : {}),
     },
   });
+}
+
+export async function createManyForUser(userId: string, notes: ImportNoteRow[]): Promise<number> {
+  const result = await prisma.note.createMany({
+    data: notes.map((note) => ({
+      userId,
+      title: note.title,
+      type: note.type,
+      color: note.color,
+      pinned: note.pinned,
+      wordCount: note.wordCount,
+      ...(note.content !== undefined ? { content: note.content as Prisma.InputJsonValue } : {}),
+    })),
+  });
+  return result.count;
 }
 
 export function update(id: string, data: UpdateNoteData) {

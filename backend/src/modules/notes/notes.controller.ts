@@ -4,7 +4,12 @@ import { ApiError } from '../../utils/ApiError';
 import { asyncHandler } from '../../utils/asyncHandler';
 import { toAssetResponse } from './notes-assets.controller';
 import * as notesService from './notes.service';
-import { createNoteSchema, listNotesQuerySchema, updateNoteSchema } from './notes.validation';
+import {
+  createNoteSchema,
+  importNotesSchema,
+  listNotesQuerySchema,
+  updateNoteSchema,
+} from './notes.validation';
 
 export const list = asyncHandler(async (req: Request, res: Response) => {
   const parsed = listNotesQuerySchema.safeParse(req.query);
@@ -29,6 +34,16 @@ export const exportNotes = asyncHandler(async (req: Request, res: Response) => {
   const filename = `notes-export-${new Date().toISOString().slice(0, 10)}.json`;
   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
   res.status(200).json(result);
+});
+
+export const importNotes = asyncHandler(async (req: Request, res: Response) => {
+  const parsed = importNotesSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw ApiError.badRequest('Invalid import file', parsed.error.flatten().fieldErrors);
+  }
+
+  const result = await notesService.importNotes(req.user!.id, parsed.data.notes);
+  res.status(201).json(result);
 });
 
 export const create = asyncHandler(async (req: Request, res: Response) => {

@@ -45,3 +45,11 @@ export interface NotesExport {
   exportedAt: string;
   notes: ExportedNote[];
 }
+
+export interface ImportNoteInput {
+  title: string;
+  content?: unknown;
+  type?: NoteType;
+  color?: string;
+  pinned?: boolean;
+}

@@ -7,6 +7,7 @@ import type { NoteListFilter } from './notes.repository';
 import * as notesRepository from './notes.repository';
 import {
   CreateNoteInput,
+  ImportNoteInput,
   NoteCounts,
   NotesExport,
   NoteWithAssets,
@@ -34,6 +35,25 @@ export async function createNote(
   });
   emitNoteEvent(userId, 'note:created', note);
   return note;
+}
+
+export async function importNotes(
+  userId: string,
+  notes: ImportNoteInput[],
+  repository: NotesRepository = notesRepository,
+): Promise<{ imported: number }> {
+  const rows = notes.map((note) => ({
+    title: note.title,
+    content: note.content,
+    type: note.type ?? ('TEXT' as const),
+    color: note.color ?? 'yellow',
+    pinned: note.pinned ?? false,
+    wordCount: computeWordCount(note.content),
+  }));
+
+  const imported = await repository.createManyForUser(userId, rows);
+  emitNoteEvent(userId, 'notes:imported', { count: imported });
+  return { imported };
 }
 
 export interface ListNotesOptions {

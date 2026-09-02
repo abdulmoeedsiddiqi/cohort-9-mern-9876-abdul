@@ -13,6 +13,7 @@ notesRouter.get('/', notesController.list);
 notesRouter.get('/export', notesController.exportNotes);
 notesRouter.get('/trash', notesController.listTrash);
 notesRouter.post('/', notesController.create);
+notesRouter.post('/import', notesController.importNotes);
 notesRouter.get('/:id', notesController.getOne);
 notesRouter.patch('/:id', notesController.update);
 notesRouter.post('/:id/restore', notesController.restore);

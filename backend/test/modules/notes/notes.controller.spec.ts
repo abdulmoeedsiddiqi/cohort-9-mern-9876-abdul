@@ -140,6 +140,45 @@ describe('notes controller (integration)', () => {
     expect(res.status).to.equal(401);
   });
 
+  it('imports notes from a previously exported file', async () => {
+    const exportPayload = {
+      notes: [
+        { title: 'Imported note 1', content: 'hello', type: 'TEXT', color: 'blue', pinned: true },
+        { title: 'Imported note 2' },
+      ],
+    };
+
+    const res = await request(app).post('/notes/import').set('Cookie', cookie).send(exportPayload);
+
+    expect(res.status).to.equal(201);
+    expect(res.body.imported).to.equal(2);
+
+    const list = await request(app).get('/notes').set('Cookie', cookie);
+    expect(list.body.notes.map((n: { title: string }) => n.title).sort()).to.deep.equal([
+      'Imported note 1',
+      'Imported note 2',
+    ]);
+    expect(list.body.counts.pinned).to.equal(1);
+  });
+
+  it('rejects an import with no notes', async () => {
+    const res = await request(app).post('/notes/import').set('Cookie', cookie).send({ notes: [] });
+    expect(res.status).to.equal(400);
+  });
+
+  it('rejects an import with an invalid note entry', async () => {
+    const res = await request(app)
+      .post('/notes/import')
+      .set('Cookie', cookie)
+      .send({ notes: [{ title: '' }] });
+    expect(res.status).to.equal(400);
+  });
+
+  it('rejects an unauthenticated import request', async () => {
+    const res = await request(app).post('/notes/import').send({ notes: [{ title: 'Nope' }] });
+    expect(res.status).to.equal(401);
+  });
+
   it('gets a single note by id', async () => {
     const created = await request(app).post('/notes').set('Cookie', cookie).send({ title: 'Solo note' });
 

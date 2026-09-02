@@ -18,6 +18,7 @@
   --color-topbar-bg: #1e1b4b;
   --color-topbar-text: #f5f5f7;
   --note-card-text: #1a1a2e;
+  --note-color-white: #ffffff;
   --note-color-yellow: #fef3c7;
   --note-color-blue: #dbeafe;
   --note-color-green: #d1fae5;
@@ -39,6 +40,7 @@
   --color-topbar-text: #f5f5f7;
   --note-card-text: #f8fafc;
   --note-card-text-dark: #1a1a2e;
+  --note-color-white: #ffffff;
   --note-color-yellow: #e6d759;
   --note-color-blue: #4a88e8;
   --note-color-green: #3e9645;
@@ -569,6 +571,9 @@ body {
   text-align: left;
 }
 
+.note-card-white {
+  background: var(--note-color-white);
+}
 .note-card-yellow {
   background: var(--note-color-yellow);
 }
@@ -591,6 +596,7 @@ body {
   background: var(--note-color-red);
 }
 
+:root[data-theme='dark'] .note-card-white,
 :root[data-theme='dark'] .note-card-yellow,
 :root[data-theme='dark'] .note-card-green {
   color: var(--note-card-text-dark);
@@ -1127,6 +1133,9 @@ body {
   margin: 0 0 0.6em;
 }
 
+.note-editor-surface-white {
+  background: var(--note-color-white);
+}
 .note-editor-surface-yellow {
   background: var(--note-color-yellow);
 }
@@ -1149,11 +1158,13 @@ body {
   background: var(--note-color-red);
 }
 
+:root[data-theme='dark'] .note-editor-surface-white .tiptap-content .ProseMirror,
 :root[data-theme='dark'] .note-editor-surface-yellow .tiptap-content .ProseMirror,
 :root[data-theme='dark'] .note-editor-surface-green .tiptap-content .ProseMirror {
   color: var(--note-card-text-dark);
 }
 
+:root[data-theme='dark'] .note-editor-surface-white .tiptap-content .ProseMirror p.is-editor-empty:first-child::before,
 :root[data-theme='dark'] .note-editor-surface-yellow .tiptap-content .ProseMirror p.is-editor-empty:first-child::before,
 :root[data-theme='dark'] .note-editor-surface-green .tiptap-content .ProseMirror p.is-editor-empty:first-child::before {
   color: color-mix(in srgb, var(--note-card-text-dark) 60%, transparent);
@@ -1259,7 +1270,7 @@ body {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  border: 2px solid transparent;
+  border: 2px solid var(--color-border);
   cursor: pointer;
   padding: 0;
 }
@@ -1268,6 +1279,9 @@ body {
   border-color: var(--color-accent-strong);
 }
 
+.note-editor-color-white {
+  background: var(--note-color-white);
+}
 .note-editor-color-yellow {
   background: var(--note-color-yellow);
 }

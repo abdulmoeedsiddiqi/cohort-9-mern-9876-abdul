@@ -20,6 +20,7 @@ import { countWords, extractPlainText } from '../lib/tiptapText';
 import type { NoteType } from '../types/note.types';
 
 const COLORS: { value: string; label: string }[] = [
+  { value: 'white', label: 'White' },
   { value: 'yellow', label: 'Yellow' },
   { value: 'blue', label: 'Blue' },
   { value: 'green', label: 'Green' },

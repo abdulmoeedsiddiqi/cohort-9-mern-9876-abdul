@@ -92,6 +92,21 @@ describe('NoteEditorPage', () => {
     expect(container.querySelector('.tiptap-editor')).not.toHaveClass('note-editor-surface-yellow');
   });
 
+  it('offers white as a selectable note color', async () => {
+    mockedNotesApi.createNote.mockResolvedValueOnce({ ...existingNote, id: 'new-note', color: 'white' });
+    const user = userEvent.setup();
+    const { container } = renderAt('/notes/new');
+
+    await user.click(screen.getByLabelText('White'));
+    expect(container.querySelector('.tiptap-editor')).toHaveClass('note-editor-surface-white');
+
+    await user.type(screen.getByPlaceholderText('Untitled note'), 'White note');
+    await user.click(screen.getByRole('button', { name: /Save note/ }));
+
+    await waitFor(() => expect(mockedNotesApi.createNote).toHaveBeenCalled());
+    expect(mockedNotesApi.createNote.mock.calls[0]?.[0]?.color).toBe('white');
+  });
+
   it('shows a validation error when saving without a title', async () => {
     const user = userEvent.setup();
     renderAt('/notes/new');

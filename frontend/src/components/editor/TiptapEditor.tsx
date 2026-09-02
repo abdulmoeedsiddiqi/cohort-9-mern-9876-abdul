@@ -3,6 +3,7 @@ import Underline from '@tiptap/extension-underline';
 import { EditorContent, useEditor } from '@tiptap/react';
 import type { Content } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import type { ReactNode } from 'react';
 
 import { countWords } from '../../lib/tiptapText';
 import { EditorToolbar } from './EditorToolbar';
@@ -10,9 +11,10 @@ import { EditorToolbar } from './EditorToolbar';
 interface TiptapEditorProps {
   content: Content;
   onUpdate: (json: object, wordCount: number) => void;
+  toolbarEnd?: ReactNode;
 }
 
-export function TiptapEditor({ content, onUpdate }: TiptapEditorProps) {
+export function TiptapEditor({ content, onUpdate, toolbarEnd }: TiptapEditorProps) {
   const editor = useEditor({
     extensions: [StarterKit, Underline, Placeholder.configure({ placeholder: 'Start writing…' })],
     content,
@@ -30,7 +32,7 @@ export function TiptapEditor({ content, onUpdate }: TiptapEditorProps) {
 
   return (
     <div className="tiptap-editor">
-      <EditorToolbar editor={editor} />
+      <EditorToolbar editor={editor} trailing={toolbarEnd} />
       <EditorContent editor={editor} className="tiptap-content" />
     </div>
   );

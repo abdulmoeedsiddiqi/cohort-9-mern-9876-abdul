@@ -946,6 +946,82 @@ body {
   background: var(--color-border);
 }
 
+.editor-toolbar-end {
+  margin-left: auto;
+}
+
+.summarize-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-strong));
+  color: #1a1a2e;
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.summarize-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ai-summary-panel {
+  margin: 0;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+}
+
+.ai-summary-panel-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--color-accent-strong);
+}
+
+.ai-summary-panel-text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-text);
+}
+
+.ai-summary-panel-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 10px;
+}
+
+.ai-summary-panel-actions button {
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.ai-summary-panel-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ai-summary-panel-error {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #dc2626;
+}
+
 .editor-toolbar-btn {
   min-width: 28px;
   height: 28px;

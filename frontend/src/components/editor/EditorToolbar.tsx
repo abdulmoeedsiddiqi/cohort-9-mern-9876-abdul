@@ -22,7 +22,7 @@ function ToolbarButton({ onClick, isActive, label, children }: ToolbarButtonProp
   );
 }
 
-export function EditorToolbar({ editor }: { editor: Editor }) {
+export function EditorToolbar({ editor, trailing }: { editor: Editor; trailing?: ReactNode }) {
   return (
     <div className="editor-toolbar" role="toolbar" aria-label="Text formatting">
       <ToolbarButton
@@ -103,6 +103,8 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
       <ToolbarButton label="Redo" onClick={() => editor.chain().focus().redo().run()}>
         ↻
       </ToolbarButton>
+
+      {trailing && <div className="editor-toolbar-end">{trailing}</div>}
     </div>
   );
 }

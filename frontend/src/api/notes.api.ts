@@ -63,6 +63,11 @@ export async function purgeNote(id: string): Promise<void> {
   await apiClient.delete(`/notes/${id}/purge`);
 }
 
+export async function summarizeNote(id: string): Promise<Note> {
+  const res = await apiClient.post<{ note: Note }>(`/notes/${id}/summarize`);
+  return res.data.note;
+}
+
 export type ExportFormat = 'json' | 'txt' | 'pdf' | 'docx';
 
 export interface ExportedFile {

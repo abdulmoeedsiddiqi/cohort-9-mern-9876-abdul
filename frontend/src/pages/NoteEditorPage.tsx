@@ -1,12 +1,20 @@
 import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
+import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { ThemeToggle } from '../components/common/ThemeToggle';
+import { AiSummaryPanel } from '../components/editor/AiSummaryPanel';
 import { TiptapEditor } from '../components/editor/TiptapEditor';
 import type { RecordedVideo } from '../components/notes/VideoRecorder';
 import { VideoRecorder } from '../components/notes/VideoRecorder';
-import { useCreateNote, useNote, useUpdateNote, useUploadVideoAsset } from '../hooks/useNotes';
+import {
+  useCreateNote,
+  useNote,
+  useSummarizeNote,
+  useUpdateNote,
+  useUploadVideoAsset,
+} from '../hooks/useNotes';
 import { resolveAssetUrl } from '../lib/assetUrl';
 import { countWords, extractPlainText } from '../lib/tiptapText';
 import type { NoteType } from '../types/note.types';
@@ -46,6 +54,7 @@ export function NoteEditorPage() {
   const createNote = useCreateNote();
   const updateNote = useUpdateNote();
   const uploadVideoAsset = useUploadVideoAsset();
+  const summarizeNote = useSummarizeNote();
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState<unknown>(undefined);
@@ -54,6 +63,9 @@ export function NoteEditorPage() {
   const [color, setColor] = useState('yellow');
   const [recordedVideo, setRecordedVideo] = useState<RecordedVideo | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [summary, setSummary] = useState<string | null>(null);
+  const [isSummaryDismissed, setIsSummaryDismissed] = useState(false);
+  const [summaryError, setSummaryError] = useState<string | null>(null);
 
   useEffect(() => {
     if (existingNote) {
@@ -66,8 +78,27 @@ export function NoteEditorPage() {
           ? existingNote.content
           : extractPlainText(existingNote.content);
       setWordCount(countWords(plainText));
+      setSummary(existingNote.summary);
+      setIsSummaryDismissed(false);
     }
   }, [existingNote]);
+
+  async function handleSummarize() {
+    if (!id) {
+      return;
+    }
+    setSummaryError(null);
+    try {
+      const updated = await summarizeNote.mutateAsync(id);
+      setSummary(updated.summary);
+      setIsSummaryDismissed(false);
+    } catch (err) {
+      const message = axios.isAxiosError(err)
+        ? (err.response?.data as { error?: { message?: string } } | undefined)?.error?.message
+        : undefined;
+      setSummaryError(message ?? 'Could not generate a summary right now. Please try again.');
+    }
+  }
 
   const isSaving = createNote.isPending || updateNote.isPending || uploadVideoAsset.isPending;
 
@@ -155,8 +186,34 @@ export function NoteEditorPage() {
               setContent(json);
               setWordCount(count);
             }}
+            toolbarEnd={
+              isEditing && (
+                <button
+                  type="button"
+                  className="summarize-button"
+                  onClick={() => {
+                    void handleSummarize();
+                  }}
+                  disabled={summarizeNote.isPending}
+                >
+                  <span aria-hidden="true">✦</span> {summarizeNote.isPending ? 'Summarizing…' : 'Summarize'}
+                </button>
+              )
+            }
           />
         )}
+
+        {summary && !isSummaryDismissed && (
+          <AiSummaryPanel
+            summary={summary}
+            isRegenerating={summarizeNote.isPending}
+            onRegenerate={() => {
+              void handleSummarize();
+            }}
+            onDismiss={() => setIsSummaryDismissed(true)}
+          />
+        )}
+        {summaryError && <p className="ai-summary-panel-error">{summaryError}</p>}
 
         {type !== 'TEXT' && (
           <VideoRecorder onRecorded={setRecordedVideo} existingAssetUrl={resolveAssetUrl(existingVideoAsset?.url)} />

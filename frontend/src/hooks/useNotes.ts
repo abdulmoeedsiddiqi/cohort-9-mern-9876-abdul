@@ -75,6 +75,14 @@ export function usePurgeNote() {
   });
 }
 
+export function useSummarizeNote() {
+  const invalidate = useInvalidateNotes();
+  return useMutation({
+    mutationFn: notesApi.summarizeNote,
+    onSuccess: invalidate,
+  });
+}
+
 export function useExportNotes() {
   return useMutation({ mutationFn: notesApi.exportNotesFile });
 }

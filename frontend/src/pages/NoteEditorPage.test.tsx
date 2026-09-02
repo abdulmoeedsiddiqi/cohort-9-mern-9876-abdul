@@ -12,6 +12,7 @@ jest.mock('../api/notes.api', () => ({
   createNote: jest.fn(),
   updateNote: jest.fn(),
   getNote: jest.fn(),
+  summarizeNote: jest.fn(),
 }));
 jest.mock('../lib/assetUrl', () => ({
   resolveAssetUrl: (path: string | null | undefined) => (path ? `http://localhost:4200${path}` : undefined),
@@ -129,5 +130,58 @@ describe('NoteEditorPage', () => {
 
     expect(screen.queryByRole('textbox', { name: 'Note content' })).not.toBeInTheDocument();
     expect(screen.getByText('Tap to record a video note')).toBeInTheDocument();
+  });
+
+  it('does not show a Summarize button for a new, unsaved note', async () => {
+    renderAt('/notes/new');
+
+    expect(screen.queryByRole('button', { name: /Summarize/ })).not.toBeInTheDocument();
+  });
+
+  it('shows the saved summary in a panel when editing an existing note', async () => {
+    mockedNotesApi.getNote.mockResolvedValueOnce({ ...existingNote, summary: 'Previously generated summary.' });
+    renderAt('/notes/note-1');
+
+    expect(await screen.findByText('Previously generated summary.')).toBeInTheDocument();
+    expect(screen.getByText('AI Summary')).toBeInTheDocument();
+  });
+
+  it('generates a summary on click and displays it in the panel', async () => {
+    mockedNotesApi.getNote.mockResolvedValueOnce(existingNote);
+    mockedNotesApi.summarizeNote.mockResolvedValueOnce({ ...existingNote, summary: 'A fresh summary.' });
+    const user = userEvent.setup();
+    renderAt('/notes/note-1');
+
+    await user.click(await screen.findByRole('button', { name: /Summarize/ }));
+
+    expect(await screen.findByText('A fresh summary.')).toBeInTheDocument();
+    expect(mockedNotesApi.summarizeNote.mock.calls[0]?.[0]).toBe('note-1');
+  });
+
+  it('dismisses the summary panel without deleting the saved summary', async () => {
+    mockedNotesApi.getNote.mockResolvedValueOnce({ ...existingNote, summary: 'Previously generated summary.' });
+    const user = userEvent.setup();
+    renderAt('/notes/note-1');
+
+    await user.click(await screen.findByRole('button', { name: 'Dismiss' }));
+
+    expect(screen.queryByText('Previously generated summary.')).not.toBeInTheDocument();
+    expect(mockedNotesApi.summarizeNote).not.toHaveBeenCalled();
+  });
+
+  it('shows the server error message when summarizing fails', async () => {
+    mockedNotesApi.getNote.mockResolvedValueOnce(existingNote);
+    mockedNotesApi.summarizeNote.mockRejectedValueOnce(
+      Object.assign(new Error('Request failed'), {
+        isAxiosError: true,
+        response: { data: { error: { message: 'AI summarization is not configured on this server' } } },
+      }),
+    );
+    const user = userEvent.setup();
+    renderAt('/notes/note-1');
+
+    await user.click(await screen.findByRole('button', { name: /Summarize/ }));
+
+    expect(await screen.findByText('AI summarization is not configured on this server')).toBeInTheDocument();
   });
 });

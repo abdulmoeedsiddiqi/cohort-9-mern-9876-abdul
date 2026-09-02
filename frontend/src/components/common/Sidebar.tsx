@@ -2,9 +2,9 @@ import { useRef, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import { NavLink } from 'react-router-dom';
 
-import type { ImportNoteInput } from '../../api/notes.api';
-import { useExportNotes, useImportNotes, useNotes } from '../../hooks/useNotes';
-import { downloadJson } from '../../lib/downloadFile';
+import type { ExportFormat, ImportNoteInput } from '../../api/notes.api';
+import { useExportNotes, useImportNoteFile, useImportNotes, useNotes } from '../../hooks/useNotes';
+import { downloadBlob } from '../../lib/downloadFile';
 
 function NavIcon({ path }: { path: string }) {
   return (
@@ -33,13 +33,25 @@ const ICONS = {
   import: 'M12 21V11 M8 15l4-4 4 4 M5 3h14',
 };
 
+const EXPORT_FORMAT_OPTIONS: { format: ExportFormat; label: string }[] = [
+  { format: 'json', label: 'JSON (re-importable)' },
+  { format: 'txt', label: 'Plain text (.txt)' },
+  { format: 'pdf', label: 'PDF' },
+  { format: 'docx', label: 'Word (.docx)' },
+];
+
+const IMPORT_FILE_ACCEPT =
+  '.json,.txt,.pdf,.docx,application/json,text/plain,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+
 export function Sidebar() {
   const { data } = useNotes();
   const counts = data?.counts;
   const exportNotes = useExportNotes();
   const importNotes = useImportNotes();
+  const importNoteFile = useImportNoteFile();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importStatus, setImportStatus] = useState<string | null>(null);
+  const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
 
   const items = [
     { to: '/notes', label: 'All notes', count: counts?.all, icon: ICONS.all, end: true },
@@ -48,11 +60,12 @@ export function Sidebar() {
     { to: '/notes/trash', label: 'Trash', count: counts?.trash, icon: ICONS.trash, end: false },
   ];
 
-  async function handleExport() {
+  async function handleExport(format: ExportFormat) {
+    setIsExportMenuOpen(false);
     setImportStatus(null);
     try {
-      const result = await exportNotes.mutateAsync();
-      downloadJson(`notes-export-${new Date().toISOString().slice(0, 10)}.json`, result);
+      const { blob, filename } = await exportNotes.mutateAsync(format);
+      downloadBlob(filename, blob);
     } catch {
       setImportStatus("Couldn't export notes. Please try again.");
     }
@@ -70,6 +83,18 @@ export function Sidebar() {
       return;
     }
 
+    const isJson = file.name.toLowerCase().endsWith('.json') || file.type === 'application/json';
+
+    if (!isJson) {
+      try {
+        const result = await importNoteFile.mutateAsync(file);
+        setImportStatus(`Imported "${result.note.title}".`);
+      } catch {
+        setImportStatus("Couldn't import that file. Make sure it's a .txt, .pdf, or .docx file.");
+      }
+      return;
+    }
+
     try {
       const text = await file.text();
       const parsed = JSON.parse(text) as { notes?: ImportNoteInput[] };
@@ -84,6 +109,8 @@ export function Sidebar() {
       setImportStatus("Couldn't import that file. Make sure it's a notes export.");
     }
   }
+
+  const isImporting = importNotes.isPending || importNoteFile.isPending;
 
   return (
     <nav className="sidebar" aria-label="Notes navigation">
@@ -103,32 +130,52 @@ export function Sidebar() {
       ))}
 
       <div className="sidebar-secondary">
-        <button
-          type="button"
-          className="sidebar-link sidebar-action"
-          onClick={handleExport}
-          disabled={exportNotes.isPending}
-        >
-          <span className="sidebar-link-label">
-            <NavIcon path={ICONS.export} />
-            {exportNotes.isPending ? 'Exporting…' : 'Export notes'}
-          </span>
-        </button>
+        <div className="sidebar-export-menu">
+          <button
+            type="button"
+            className="sidebar-link sidebar-action"
+            onClick={() => setIsExportMenuOpen((open) => !open)}
+            disabled={exportNotes.isPending}
+            aria-haspopup="menu"
+            aria-expanded={isExportMenuOpen}
+          >
+            <span className="sidebar-link-label">
+              <NavIcon path={ICONS.export} />
+              {exportNotes.isPending ? 'Exporting…' : 'Export notes'}
+            </span>
+          </button>
+          {isExportMenuOpen && (
+            <div className="sidebar-export-dropdown" role="menu">
+              {EXPORT_FORMAT_OPTIONS.map((option) => (
+                <button
+                  key={option.format}
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    void handleExport(option.format);
+                  }}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         <button
           type="button"
           className="sidebar-link sidebar-action"
           onClick={handleImportClick}
-          disabled={importNotes.isPending}
+          disabled={isImporting}
         >
           <span className="sidebar-link-label">
             <NavIcon path={ICONS.import} />
-            {importNotes.isPending ? 'Importing…' : 'Import notes'}
+            {isImporting ? 'Importing…' : 'Import notes'}
           </span>
         </button>
         <input
           ref={fileInputRef}
           type="file"
-          accept="application/json"
+          accept={IMPORT_FILE_ACCEPT}
           className="sidebar-file-input"
           aria-label="Import notes file"
           onChange={(event) => {

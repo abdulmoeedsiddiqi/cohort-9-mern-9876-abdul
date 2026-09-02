@@ -96,4 +96,53 @@ describe('notes.api', () => {
 
     expect(mockedApiClient.delete).toHaveBeenCalledWith('/notes/1/purge');
   });
+
+  it('exportNotesFile requests the given format as a blob and reads the filename from the response headers', async () => {
+    const blob = new Blob(['pdf bytes']);
+    mockedApiClient.get.mockResolvedValueOnce({
+      data: blob,
+      headers: { 'content-disposition': 'attachment; filename="notes-export-2026-01-01.pdf"' },
+    });
+
+    const result = await notesApi.exportNotesFile('pdf');
+
+    expect(mockedApiClient.get).toHaveBeenCalledWith('/notes/export', {
+      params: { format: 'pdf' },
+      responseType: 'blob',
+    });
+    expect(result).toEqual({ blob, filename: 'notes-export-2026-01-01.pdf' });
+  });
+
+  it('exportNotesFile falls back to a generic filename when Content-Disposition is missing', async () => {
+    const blob = new Blob(['txt bytes']);
+    mockedApiClient.get.mockResolvedValueOnce({ data: blob, headers: {} });
+
+    const result = await notesApi.exportNotesFile('txt');
+
+    expect(result).toEqual({ blob, filename: 'notes-export.txt' });
+  });
+
+  it('importNotes calls POST /notes/import with the notes array', async () => {
+    mockedApiClient.post.mockResolvedValueOnce({ data: { imported: 2 } });
+
+    const result = await notesApi.importNotes([{ title: 'A' }, { title: 'B' }]);
+
+    expect(mockedApiClient.post).toHaveBeenCalledWith('/notes/import', {
+      notes: [{ title: 'A' }, { title: 'B' }],
+    });
+    expect(result).toEqual({ imported: 2 });
+  });
+
+  it('importNoteFile posts the file as multipart form data to /notes/import/file', async () => {
+    const note = { id: '1', title: 'My note' };
+    mockedApiClient.post.mockResolvedValueOnce({ data: { imported: 1, note } });
+    const file = new File(['hello'], 'My note.txt', { type: 'text/plain' });
+
+    const result = await notesApi.importNoteFile(file);
+
+    expect(mockedApiClient.post).toHaveBeenCalledWith('/notes/import/file', expect.any(FormData));
+    const formData = mockedApiClient.post.mock.calls[0]?.[1] as FormData;
+    expect(formData.get('file')).toBe(file);
+    expect(result).toEqual({ imported: 1, note });
+  });
 });

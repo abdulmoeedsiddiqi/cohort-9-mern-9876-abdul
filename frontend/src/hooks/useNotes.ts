@@ -76,13 +76,21 @@ export function usePurgeNote() {
 }
 
 export function useExportNotes() {
-  return useMutation({ mutationFn: notesApi.exportNotes });
+  return useMutation({ mutationFn: notesApi.exportNotesFile });
 }
 
 export function useImportNotes() {
   const invalidate = useInvalidateNotes();
   return useMutation({
     mutationFn: notesApi.importNotes,
+    onSuccess: invalidate,
+  });
+}
+
+export function useImportNoteFile() {
+  const invalidate = useInvalidateNotes();
+  return useMutation({
+    mutationFn: notesApi.importNoteFile,
     onSuccess: invalidate,
   });
 }

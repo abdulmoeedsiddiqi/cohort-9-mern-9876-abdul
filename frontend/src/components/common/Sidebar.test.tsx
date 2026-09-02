@@ -8,14 +8,15 @@ import { Sidebar } from './Sidebar';
 
 jest.mock('../../api/notes.api', () => ({
   listNotes: jest.fn(),
-  exportNotes: jest.fn(),
+  exportNotesFile: jest.fn(),
   importNotes: jest.fn(),
+  importNoteFile: jest.fn(),
 }));
 const mockedNotesApi = notesApi as jest.Mocked<typeof notesApi>;
 
-const mockedDownloadJson = jest.fn();
+const mockedDownloadBlob = jest.fn();
 jest.mock('../../lib/downloadFile', () => ({
-  downloadJson: (filename: string, data: unknown) => mockedDownloadJson(filename, data),
+  downloadBlob: (filename: string, blob: Blob) => mockedDownloadBlob(filename, blob),
 }));
 
 const basePayload = {
@@ -35,7 +36,7 @@ function renderSidebar() {
   );
 }
 
-function makeFile(content: unknown, name = 'export.json') {
+function makeJsonFile(content: unknown, name = 'export.json') {
   return new File([JSON.stringify(content)], name, { type: 'application/json' });
 }
 
@@ -53,26 +54,25 @@ describe('Sidebar', () => {
     expect(await screen.findByText('3')).toBeInTheDocument();
   });
 
-  it('exports notes and triggers a download on click', async () => {
-    const exportPayload = { exportedAt: '2026-01-01T00:00:00.000Z', notes: [] };
-    mockedNotesApi.exportNotes.mockResolvedValueOnce(exportPayload);
+  it('opens a format menu on Export notes click and downloads the chosen format', async () => {
+    const exported = { blob: new Blob(['pdf bytes']), filename: 'notes-export-2026-01-01.pdf' };
+    mockedNotesApi.exportNotesFile.mockResolvedValueOnce(exported);
     const user = userEvent.setup();
     renderSidebar();
 
     await user.click(await screen.findByText('Export notes'));
+    await user.click(await screen.findByText('PDF'));
 
-    await waitFor(() => expect(mockedNotesApi.exportNotes).toHaveBeenCalled());
-    await waitFor(() =>
-      expect(mockedDownloadJson).toHaveBeenCalledWith(expect.stringMatching(/^notes-export-.*\.json$/), exportPayload),
-    );
+    await waitFor(() => expect(mockedNotesApi.exportNotesFile.mock.calls[0]?.[0]).toBe('pdf'));
+    await waitFor(() => expect(mockedDownloadBlob).toHaveBeenCalledWith(exported.filename, exported.blob));
   });
 
-  it('imports a valid export file and shows how many notes were imported', async () => {
+  it('imports a valid JSON export file and shows how many notes were imported', async () => {
     mockedNotesApi.importNotes.mockResolvedValueOnce({ imported: 2 });
     const user = userEvent.setup();
     renderSidebar();
 
-    const file = makeFile({ notes: [{ title: 'A' }, { title: 'B' }] });
+    const file = makeJsonFile({ notes: [{ title: 'A' }, { title: 'B' }] });
     const input = document.querySelector('.sidebar-file-input') as HTMLInputElement;
     await user.upload(input, file);
 
@@ -80,11 +80,11 @@ describe('Sidebar', () => {
     expect(mockedNotesApi.importNotes.mock.calls[0]?.[0]).toEqual([{ title: 'A' }, { title: 'B' }]);
   });
 
-  it('shows an error for a file with no notes', async () => {
+  it('shows an error for a JSON file with no notes', async () => {
     const user = userEvent.setup();
     renderSidebar();
 
-    const file = makeFile({ notes: [] });
+    const file = makeJsonFile({ notes: [] });
     const input = document.querySelector('.sidebar-file-input') as HTMLInputElement;
     await user.upload(input, file);
 
@@ -92,7 +92,7 @@ describe('Sidebar', () => {
     expect(mockedNotesApi.importNotes).not.toHaveBeenCalled();
   });
 
-  it('shows an error for a file that is not valid JSON', async () => {
+  it('shows an error for a .json file that is not valid JSON', async () => {
     const user = userEvent.setup();
     renderSidebar();
 
@@ -101,5 +101,35 @@ describe('Sidebar', () => {
     await user.upload(input, file);
 
     expect(await screen.findByText("Couldn't import that file. Make sure it's a notes export.")).toBeInTheDocument();
+  });
+
+  it('imports a .txt file as a single note via the file-upload endpoint', async () => {
+    mockedNotesApi.importNoteFile.mockResolvedValueOnce({
+      imported: 1,
+      note: { id: 'n1', title: 'My note' } as never,
+    });
+    const user = userEvent.setup();
+    renderSidebar();
+
+    const file = new File(['plain text content'], 'My note.txt', { type: 'text/plain' });
+    const input = document.querySelector('.sidebar-file-input') as HTMLInputElement;
+    await user.upload(input, file);
+
+    expect(await screen.findByText('Imported "My note".')).toBeInTheDocument();
+    expect(mockedNotesApi.importNoteFile.mock.calls[0]?.[0]).toBe(file);
+  });
+
+  it('shows an error when a .pdf/.docx import fails', async () => {
+    mockedNotesApi.importNoteFile.mockRejectedValueOnce(new Error('boom'));
+    const user = userEvent.setup();
+    renderSidebar();
+
+    const file = new File(['%PDF-1.4'], 'notes.pdf', { type: 'application/pdf' });
+    const input = document.querySelector('.sidebar-file-input') as HTMLInputElement;
+    await user.upload(input, file);
+
+    expect(
+      await screen.findByText("Couldn't import that file. Make sure it's a .txt, .pdf, or .docx file."),
+    ).toBeInTheDocument();
   });
 });

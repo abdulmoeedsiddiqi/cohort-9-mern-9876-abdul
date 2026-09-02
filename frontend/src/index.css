@@ -217,6 +217,40 @@ body {
   cursor: not-allowed;
 }
 
+.sidebar-export-menu {
+  position: relative;
+}
+
+.sidebar-export-dropdown {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: calc(100% + 2px);
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 6px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  z-index: 5;
+}
+
+.sidebar-export-dropdown button[role='menuitem'] {
+  width: 100%;
+  text-align: left;
+  padding: 7px 8px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--color-text);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.sidebar-export-dropdown button[role='menuitem']:hover {
+  background: var(--color-bg);
+}
+
 .sidebar-file-input {
   display: none;
 }

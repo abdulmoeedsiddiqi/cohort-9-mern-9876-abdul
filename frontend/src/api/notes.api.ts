@@ -1,4 +1,4 @@
-import type { Note, NoteAsset, NotesExport, NoteType, NotesListResult, TrashListResult } from '../types/note.types';
+import type { Note, NoteAsset, NoteType, NotesListResult, TrashListResult } from '../types/note.types';
 import { apiClient } from './client';
 
 export interface CreateNoteInput {
@@ -63,9 +63,21 @@ export async function purgeNote(id: string): Promise<void> {
   await apiClient.delete(`/notes/${id}/purge`);
 }
 
-export async function exportNotes(): Promise<NotesExport> {
-  const res = await apiClient.get<NotesExport>('/notes/export');
-  return res.data;
+export type ExportFormat = 'json' | 'txt' | 'pdf' | 'docx';
+
+export interface ExportedFile {
+  blob: Blob;
+  filename: string;
+}
+
+export async function exportNotesFile(format: ExportFormat): Promise<ExportedFile> {
+  const res = await apiClient.get('/notes/export', {
+    params: { format },
+    responseType: 'blob',
+  });
+  const disposition = res.headers['content-disposition'] as string | undefined;
+  const filename = disposition?.match(/filename="([^"]+)"/)?.[1] ?? `notes-export.${format}`;
+  return { blob: res.data as Blob, filename };
 }
 
 export interface ImportNoteInput {
@@ -78,6 +90,13 @@ export interface ImportNoteInput {
 
 export async function importNotes(notes: ImportNoteInput[]): Promise<{ imported: number }> {
   const res = await apiClient.post<{ imported: number }>('/notes/import', { notes });
+  return res.data;
+}
+
+export async function importNoteFile(file: File): Promise<{ imported: number; note: Note }> {
+  const form = new FormData();
+  form.append('file', file);
+  const res = await apiClient.post<{ imported: number; note: Note }>('/notes/import/file', form);
   return res.data;
 }
 

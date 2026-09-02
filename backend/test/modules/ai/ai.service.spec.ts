@@ -72,5 +72,33 @@ describe('ai.service', () => {
         env.aiApiKey = original;
       }
     });
+
+    it('returns local summary when aiApiKey is configured as local or mock', async () => {
+      const original = env.aiApiKey;
+      env.aiApiKey = 'local';
+
+      try {
+        const summary = await summarizeText('Team agreed on the roadmap. Focus on MVP first.');
+        expect(summary).to.include('Team agreed on the roadmap.');
+        expect(summary).to.include('Focus on MVP first.');
+      } finally {
+        env.aiApiKey = original;
+      }
+    });
+
+    it('uses local fallback summary when aiEnableFallback is true and provider fails', async () => {
+      const originalFallback = env.aiEnableFallback;
+      const originalKey = env.aiApiKey;
+      env.aiEnableFallback = true;
+      env.aiApiKey = 'dummy-key';
+
+      try {
+        const summary = await summarizeText('Team agreed on the roadmap. Focus on MVP first.');
+        expect(summary).to.include('Team agreed on the roadmap.');
+      } finally {
+        env.aiEnableFallback = originalFallback;
+        env.aiApiKey = originalKey;
+      }
+    });
   });
 });

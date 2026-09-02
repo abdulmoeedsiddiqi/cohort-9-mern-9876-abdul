@@ -11,6 +11,9 @@ const EXTENSION_BY_MIME_TYPE: Record<string, string> = {
   'video/quicktime': 'mov',
   'video/x-matroska': 'mkv',
   'video/ogg': 'ogv',
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
 };
 
 function extensionFromMimeType(mimeType: string): string {
@@ -20,22 +23,36 @@ function extensionFromMimeType(mimeType: string): string {
 interface UploadedFile {
   buffer: Buffer;
   mimetype: string;
-  size: number;
+  size?: number;
 }
 
-export async function addVideoAsset(userId: string, noteId: string, file: UploadedFile) {
+interface AddVideoAssetInput {
+  video: UploadedFile;
+  thumbnail?: UploadedFile;
+  durationSec: number;
+}
+
+export async function addVideoAsset(userId: string, noteId: string, input: AddVideoAssetInput) {
   const note = await notesRepository.findOneForUser(noteId, userId);
   if (!note) {
     throw ApiError.notFound('Note not found');
   }
 
-  const filename = `${randomUUID()}.${extensionFromMimeType(file.mimetype)}`;
-  const filePath = await saveFile(`notes/${noteId}`, filename, file.buffer);
+  const videoFilename = `${randomUUID()}.${extensionFromMimeType(input.video.mimetype)}`;
+  const filePath = await saveFile(`notes/${noteId}`, videoFilename, input.video.buffer);
+
+  let thumbnailPath: string | undefined;
+  if (input.thumbnail) {
+    const thumbnailFilename = `${randomUUID()}.${extensionFromMimeType(input.thumbnail.mimetype)}`;
+    thumbnailPath = await saveFile(`notes/${noteId}/thumbnails`, thumbnailFilename, input.thumbnail.buffer);
+  }
 
   return notesAssetsRepository.createAsset(noteId, {
     filePath,
-    mimeType: file.mimetype,
-    sizeBytes: file.size,
+    mimeType: input.video.mimetype,
+    sizeBytes: input.video.size ?? input.video.buffer.length,
+    durationSec: input.durationSec,
+    thumbnailPath,
   });
 }
 
@@ -52,4 +69,7 @@ export async function removeVideoAsset(userId: string, noteId: string, assetId: 
 
   await notesAssetsRepository.deleteAsset(assetId);
   await deleteFile(asset.filePath);
+  if (asset.thumbnailPath) {
+    await deleteFile(asset.thumbnailPath);
+  }
 }

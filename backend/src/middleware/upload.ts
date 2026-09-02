@@ -9,13 +9,20 @@ const uploader = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: MAX_VIDEO_BYTES },
   fileFilter: (_req, file, cb) => {
-    if (!file.mimetype.startsWith('video/')) {
-      cb(new Error('Only video files are allowed'));
+    if (file.fieldname === 'video' && !file.mimetype.startsWith('video/')) {
+      cb(new Error('The video field must be a video file'));
+      return;
+    }
+    if (file.fieldname === 'thumbnail' && !file.mimetype.startsWith('image/')) {
+      cb(new Error('The thumbnail field must be an image file'));
       return;
     }
     cb(null, true);
   },
-}).single('video');
+}).fields([
+  { name: 'video', maxCount: 1 },
+  { name: 'thumbnail', maxCount: 1 },
+]);
 
 export function uploadVideo(req: Request, res: Response, next: NextFunction): void {
   uploader(req, res, (err: unknown) => {

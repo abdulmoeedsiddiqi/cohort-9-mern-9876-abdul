@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 
 import { ApiError } from '../../utils/ApiError';
 import { asyncHandler } from '../../utils/asyncHandler';
+import { toAssetResponse } from './notes-assets.controller';
 import * as notesService from './notes.service';
 import { createNoteSchema, listNotesQuerySchema, updateNoteSchema } from './notes.validation';
 
@@ -27,7 +28,7 @@ export const create = asyncHandler(async (req: Request, res: Response) => {
 
 export const getOne = asyncHandler(async (req: Request, res: Response) => {
   const note = await notesService.getNote(req.user!.id, req.params.id);
-  res.status(200).json({ note });
+  res.status(200).json({ note: { ...note, assets: note.assets.map(toAssetResponse) } });
 });
 
 export const update = asyncHandler(async (req: Request, res: Response) => {

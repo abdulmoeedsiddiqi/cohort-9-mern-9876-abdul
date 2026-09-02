@@ -2,10 +2,13 @@ import type { NoteType, Prisma } from '@prisma/client';
 
 import { prisma } from '../../lib/prisma';
 
+export type NoteListFilter = 'all' | 'pinned' | 'video';
+
 interface ListOptions {
   userId: string;
   page: number;
   pageSize: number;
+  filter?: NoteListFilter;
 }
 
 interface CreateNoteData {
@@ -25,12 +28,19 @@ interface UpdateNoteData {
   wordCount?: number;
 }
 
-export function findManyForUser({ userId, page, pageSize }: ListOptions) {
+function filterWhere(filter?: NoteListFilter): Prisma.NoteWhereInput {
+  if (filter === 'pinned') return { pinned: true };
+  if (filter === 'video') return { type: { in: ['VIDEO', 'MIXED'] } };
+  return {};
+}
+
+export function findManyForUser({ userId, page, pageSize, filter }: ListOptions) {
   return prisma.note.findMany({
-    where: { userId, deletedAt: null },
+    where: { userId, deletedAt: null, ...filterWhere(filter) },
     orderBy: { updatedAt: 'desc' },
     skip: (page - 1) * pageSize,
     take: pageSize,
+    include: { assets: true },
   });
 }
 

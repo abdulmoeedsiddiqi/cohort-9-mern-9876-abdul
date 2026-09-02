@@ -19,8 +19,19 @@ function makeFakeRepository(initialNotes: FakeNote[] = []) {
 
   return {
     notes,
-    findManyForUser: async ({ userId }: { userId: string }) =>
-      notes.filter((n) => n.userId === userId && !n.deletedAt),
+    findManyForUser: async ({
+      userId,
+      filter,
+    }: {
+      userId: string;
+      filter?: 'all' | 'pinned' | 'video';
+    }) =>
+      notes.filter((n) => {
+        if (n.userId !== userId || n.deletedAt) return false;
+        if (filter === 'pinned') return n.pinned;
+        if (filter === 'video') return n.type !== 'TEXT';
+        return true;
+      }),
     countForUser: async (userId: string) => notes.filter((n) => n.userId === userId && !n.deletedAt).length,
     countPinnedForUser: async (userId: string) =>
       notes.filter((n) => n.userId === userId && !n.deletedAt && n.pinned).length,
@@ -96,11 +107,34 @@ describe('notes.service', () => {
       await notesService.createNote('user-1', { title: 'Note 2', type: 'VIDEO' }, repository);
       await notesService.createNote('user-2', { title: 'Someone else' }, repository);
 
-      const result = await notesService.listNotes('user-1', 1, 8, repository);
+      const result = await notesService.listNotes('user-1', 1, 8, 'all', repository);
 
       expect(result.notes).to.have.length(2);
       expect(result.counts).to.deep.equal({ all: 2, pinned: 0, video: 1, trash: 0 });
       expect(result.pagination).to.deep.equal({ page: 1, pageSize: 8, total: 2, totalPages: 1 });
+    });
+
+    it('filters to only video/mixed notes when filter is "video"', async () => {
+      const repository = makeFakeRepository();
+      await notesService.createNote('user-1', { title: 'Text note' }, repository);
+      await notesService.createNote('user-1', { title: 'Video note', type: 'VIDEO' }, repository);
+
+      const result = await notesService.listNotes('user-1', 1, 8, 'video', repository);
+
+      expect(result.notes.map((n) => n.title)).to.deep.equal(['Video note']);
+      expect(result.pagination.total).to.equal(1);
+    });
+
+    it('filters to only pinned notes when filter is "pinned"', async () => {
+      const repository = makeFakeRepository();
+      const pinned = await notesService.createNote('user-1', { title: 'Pinned' }, repository);
+      await notesService.createNote('user-1', { title: 'Not pinned' }, repository);
+      await notesService.updateNote('user-1', pinned.id, { pinned: true }, repository);
+
+      const result = await notesService.listNotes('user-1', 1, 8, 'pinned', repository);
+
+      expect(result.notes.map((n) => n.title)).to.deep.equal(['Pinned']);
+      expect(result.pagination.total).to.equal(1);
     });
   });
 

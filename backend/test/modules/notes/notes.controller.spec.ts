@@ -66,6 +66,35 @@ describe('notes controller (integration)', () => {
     expect(res.body.pagination).to.include({ page: 1, pageSize: 8, total: 2 });
   });
 
+  it('filters the list to only video/mixed notes', async () => {
+    await request(app).post('/notes').set('Cookie', cookie).send({ title: 'Text note' });
+    const video = await request(app)
+      .post('/notes')
+      .set('Cookie', cookie)
+      .send({ title: 'Video note', type: 'VIDEO' });
+
+    const res = await request(app).get('/notes').query({ filter: 'video' }).set('Cookie', cookie);
+
+    expect(res.status).to.equal(200);
+    expect(res.body.notes).to.have.length(1);
+    expect(res.body.notes[0].id).to.equal(video.body.note.id);
+    expect(res.body.notes[0].assets).to.deep.equal([]);
+    expect(res.body.pagination.total).to.equal(1);
+    expect(res.body.counts).to.deep.equal({ all: 2, pinned: 0, video: 1, trash: 0 });
+  });
+
+  it('filters the list to only pinned notes', async () => {
+    const pinned = await request(app).post('/notes').set('Cookie', cookie).send({ title: 'Pin me' });
+    await request(app).patch(`/notes/${pinned.body.note.id}`).set('Cookie', cookie).send({ pinned: true });
+    await request(app).post('/notes').set('Cookie', cookie).send({ title: 'Not pinned' });
+
+    const res = await request(app).get('/notes').query({ filter: 'pinned' }).set('Cookie', cookie);
+
+    expect(res.status).to.equal(200);
+    expect(res.body.notes).to.have.length(1);
+    expect(res.body.notes[0].id).to.equal(pinned.body.note.id);
+  });
+
   it('gets a single note by id', async () => {
     const created = await request(app).post('/notes').set('Cookie', cookie).send({ title: 'Solo note' });
 

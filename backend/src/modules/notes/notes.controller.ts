@@ -12,8 +12,16 @@ export const list = asyncHandler(async (req: Request, res: Response) => {
     throw ApiError.badRequest('Invalid query parameters', parsed.error.flatten().fieldErrors);
   }
 
-  const result = await notesService.listNotes(req.user!.id, parsed.data.page, parsed.data.pageSize);
-  res.status(200).json(result);
+  const result = await notesService.listNotes(
+    req.user!.id,
+    parsed.data.page,
+    parsed.data.pageSize,
+    parsed.data.filter,
+  );
+  res.status(200).json({
+    ...result,
+    notes: result.notes.map((note) => ({ ...note, assets: note.assets.map(toAssetResponse) })),
+  });
 });
 
 export const create = asyncHandler(async (req: Request, res: Response) => {

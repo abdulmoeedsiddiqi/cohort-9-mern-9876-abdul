@@ -2,6 +2,7 @@ import type { Note } from '@prisma/client';
 
 import { ApiError } from '../../utils/ApiError';
 import { countWords } from '../../utils/wordCount';
+import type { NoteListFilter } from './notes.repository';
 import * as notesRepository from './notes.repository';
 import { CreateNoteInput, NoteCounts, NoteWithAssets, PaginationMeta, UpdateNoteInput } from './notes.types';
 
@@ -29,19 +30,27 @@ export async function listNotes(
   userId: string,
   page: number,
   pageSize: number,
+  filter: NoteListFilter = 'all',
   repository: NotesRepository = notesRepository,
-): Promise<{ notes: Note[]; pagination: PaginationMeta; counts: NoteCounts }> {
+): Promise<{ notes: NoteWithAssets[]; pagination: PaginationMeta; counts: NoteCounts }> {
   const [notes, total, pinned, video, trash] = await Promise.all([
-    repository.findManyForUser({ userId, page, pageSize }),
+    repository.findManyForUser({ userId, page, pageSize, filter }),
     repository.countForUser(userId),
     repository.countPinnedForUser(userId),
     repository.countVideoForUser(userId),
     repository.countTrashForUser(userId),
   ]);
 
+  const filteredTotal = filter === 'pinned' ? pinned : filter === 'video' ? video : total;
+
   return {
     notes,
-    pagination: { page, pageSize, total, totalPages: Math.max(1, Math.ceil(total / pageSize)) },
+    pagination: {
+      page,
+      pageSize,
+      total: filteredTotal,
+      totalPages: Math.max(1, Math.ceil(filteredTotal / pageSize)),
+    },
     counts: { all: total, pinned, video, trash },
   };
 }

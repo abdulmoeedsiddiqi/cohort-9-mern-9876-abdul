@@ -14,6 +14,8 @@ interface FakeNote {
   deletedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
+  summary?: string | null;
+  summaryUpdatedAt?: Date | null;
 }
 
 function makeFakeRepository(initialNotes: FakeNote[] = []) {
@@ -122,6 +124,12 @@ function makeFakeRepository(initialNotes: FakeNote[] = []) {
       const note = notes.find((n) => n.id === id)!;
       Object.assign(note, Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined)));
       note.updatedAt = new Date();
+      return note;
+    },
+    updateSummary: async (id: string, summary: string) => {
+      const note = notes.find((n) => n.id === id)!;
+      note.summary = summary;
+      note.summaryUpdatedAt = new Date();
       return note;
     },
     softDelete: async (id: string) => {
@@ -314,6 +322,51 @@ describe('notes.service', () => {
       } catch (err) {
         expect((err as { statusCode: number }).statusCode).to.equal(404);
       }
+    });
+  });
+
+  describe('summarizeNote', () => {
+    it('persists the summary returned by the injected summarizer', async () => {
+      const repository = makeFakeRepository();
+      const note = await notesService.createNote(
+        'user-1',
+        { title: 'Standup recap', content: 'Team agreed on MVP scope for next sprint.' },
+        repository,
+      );
+      const fakeSummarize = async (text: string) => `Summary of: ${text}`;
+
+      const updated = await notesService.summarizeNote('user-1', note.id, repository, fakeSummarize);
+
+      expect(updated.summary).to.equal('Summary of: Team agreed on MVP scope for next sprint.');
+      expect(updated.summaryUpdatedAt).to.not.equal(null);
+    });
+
+    it('throws 404 for a note owned by another user', async () => {
+      const repository = makeFakeRepository();
+      const note = await notesService.createNote('user-1', { title: 'Mine' }, repository);
+
+      try {
+        await notesService.summarizeNote('user-2', note.id, repository, async () => 'x');
+        expect.fail('expected summarizeNote to throw');
+      } catch (err) {
+        expect((err as { statusCode: number }).statusCode).to.equal(404);
+      }
+    });
+
+    it('propagates an error from the summarizer without persisting anything', async () => {
+      const repository = makeFakeRepository();
+      const note = await notesService.createNote('user-1', { title: 'Empty' }, repository);
+      const failingSummarize = async (): Promise<string> => {
+        throw Object.assign(new Error('boom'), { statusCode: 500 });
+      };
+
+      try {
+        await notesService.summarizeNote('user-1', note.id, repository, failingSummarize);
+        expect.fail('expected summarizeNote to throw');
+      } catch (err) {
+        expect((err as { statusCode: number }).statusCode).to.equal(500);
+      }
+      expect(repository.notes.find((n) => n.id === note.id)?.summary).to.equal(undefined);
     });
   });
 

@@ -157,6 +157,10 @@ export function update(id: string, data: UpdateNoteData) {
   });
 }
 
+export function updateSummary(id: string, summary: string) {
+  return prisma.note.update({ where: { id }, data: { summary, summaryUpdatedAt: new Date() } });
+}
+
 export function softDelete(id: string) {
   return prisma.note.update({ where: { id }, data: { deletedAt: new Date() } });
 }

@@ -274,6 +274,32 @@ describe('notes controller (integration)', () => {
     expect(res.status).to.equal(401);
   });
 
+  it('returns a clear error when summarizing without a configured Grok API key', async () => {
+    const created = await request(app)
+      .post('/notes')
+      .set('Cookie', cookie)
+      .send({ title: 'Standup recap', content: 'Team agreed on MVP scope.' });
+
+    const res = await request(app).post(`/notes/${created.body.note.id}/summarize`).set('Cookie', cookie);
+
+    // The test environment has no GROK_API_KEY configured, so this exercises the
+    // real "not configured" guard rather than calling the actual Grok API.
+    expect(res.status).to.equal(400);
+    expect(res.body.error.message).to.match(/not configured/i);
+  });
+
+  it('returns 404 when summarizing a nonexistent note', async () => {
+    const res = await request(app)
+      .post('/notes/00000000-0000-0000-0000-000000000000/summarize')
+      .set('Cookie', cookie);
+    expect(res.status).to.equal(404);
+  });
+
+  it('rejects an unauthenticated summarize request', async () => {
+    const res = await request(app).post('/notes/00000000-0000-0000-0000-000000000000/summarize');
+    expect(res.status).to.equal(401);
+  });
+
   it('gets a single note by id', async () => {
     const created = await request(app).post('/notes').set('Cookie', cookie).send({ title: 'Solo note' });
 

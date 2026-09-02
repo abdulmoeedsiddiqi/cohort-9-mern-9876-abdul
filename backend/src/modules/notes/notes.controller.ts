@@ -122,6 +122,11 @@ export const update = asyncHandler(async (req: Request, res: Response) => {
   res.status(200).json({ note });
 });
 
+export const summarize = asyncHandler(async (req: Request, res: Response) => {
+  const note = await notesService.summarizeNote(req.user!.id, req.params.id);
+  res.status(200).json({ note });
+});
+
 export const remove = asyncHandler(async (req: Request, res: Response) => {
   await notesService.softDeleteNote(req.user!.id, req.params.id);
   res.status(204).send();

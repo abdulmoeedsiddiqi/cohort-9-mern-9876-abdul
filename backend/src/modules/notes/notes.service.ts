@@ -1,7 +1,9 @@
 import type { Note } from '@prisma/client';
 
+import * as aiService from '../ai/ai.service';
 import { emitNoteEvent } from '../../socket/notesEvents';
 import { ApiError } from '../../utils/ApiError';
+import { extractPlainText } from '../../utils/tiptapText';
 import { countWords } from '../../utils/wordCount';
 import type { NoteListFilter } from './notes.repository';
 import * as notesRepository from './notes.repository';
@@ -144,6 +146,23 @@ export async function updateNote(
     pinned: input.pinned,
     wordCount,
   });
+  emitNoteEvent(userId, 'note:updated', updated);
+  return updated;
+}
+
+export async function summarizeNote(
+  userId: string,
+  noteId: string,
+  repository: NotesRepository = notesRepository,
+  summarizeText: typeof aiService.summarizeText = aiService.summarizeText,
+): Promise<Note> {
+  const existing = await repository.findOneForUser(noteId, userId);
+  if (!existing) {
+    throw ApiError.notFound('Note not found');
+  }
+
+  const summary = await summarizeText(extractPlainText(existing.content));
+  const updated = await repository.updateSummary(noteId, summary);
   emitNoteEvent(userId, 'note:updated', updated);
   return updated;
 }

@@ -17,6 +17,7 @@ notesRouter.post('/import', notesController.importNotes);
 notesRouter.post('/import/file', uploadImportFile, notesController.importFile);
 notesRouter.get('/:id', notesController.getOne);
 notesRouter.patch('/:id', notesController.update);
+notesRouter.post('/:id/summarize', notesController.summarize);
 notesRouter.post('/:id/restore', notesController.restore);
 notesRouter.delete('/:id/purge', notesController.purge);
 notesRouter.delete('/:id', notesController.remove);

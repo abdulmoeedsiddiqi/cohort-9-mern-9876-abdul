@@ -10,6 +10,9 @@ interface Env {
   jwtSecret: string;
   jwtExpiresInDays: number;
   cookieName: string;
+  grokApiKey: string | undefined;
+  grokBaseUrl: string;
+  grokModel: string;
 }
 
 export const env: Env = {
@@ -20,4 +23,7 @@ export const env: Env = {
   jwtSecret: process.env.JWT_SECRET ?? 'dev-only-insecure-secret-change-me',
   jwtExpiresInDays: Number(process.env.JWT_EXPIRES_IN_DAYS ?? 7),
   cookieName: process.env.COOKIE_NAME ?? 'auth_token',
+  grokApiKey: process.env.GROK_API_KEY,
+  grokBaseUrl: process.env.GROK_BASE_URL ?? 'https://api.x.ai/v1',
+  grokModel: process.env.GROK_MODEL ?? 'grok-4-fast-non-reasoning',
 };

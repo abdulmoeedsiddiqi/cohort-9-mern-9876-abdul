@@ -1,13 +1,14 @@
 import { usePurgeNote, useRestoreNote } from '../../hooks/useNotes';
 import { resolveAssetUrl } from '../../lib/assetUrl';
 import { formatDuration, formatRelativeTime } from '../../lib/noteCardFormat';
+import { extractNotePreview } from '../../lib/tiptapText';
 import type { Note } from '../../types/note.types';
 
 export function TrashCard({ note }: { note: Note }) {
   const restoreNote = useRestoreNote();
   const purgeNote = usePurgeNote();
 
-  const preview = typeof note.content === 'string' ? note.content : '';
+  const preview = extractNotePreview(note.content);
   const videoAsset = note.assets?.find((asset) => asset.kind === 'VIDEO');
   const thumbnailUrl = resolveAssetUrl(videoAsset?.thumbnailUrl);
 

@@ -71,6 +71,18 @@ describe('NoteCard', () => {
     expect(screen.queryByText('Video')).not.toBeInTheDocument();
   });
 
+  it('shows a preview extracted from Tiptap JSON content, not just plain-string content', () => {
+    renderCard({
+      ...baseNote,
+      content: {
+        type: 'doc',
+        content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Buy milk and eggs' }] }],
+      },
+    });
+
+    expect(screen.getByText('Buy milk and eggs')).toBeInTheDocument();
+  });
+
   it('shows a thumbnail with duration for a video note that has an asset', () => {
     renderCard({
       ...baseNote,

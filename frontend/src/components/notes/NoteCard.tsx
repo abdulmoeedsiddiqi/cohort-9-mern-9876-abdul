@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDeleteNote, useUpdateNote } from '../../hooks/useNotes';
 import { resolveAssetUrl } from '../../lib/assetUrl';
 import { formatDuration, formatRelativeTime } from '../../lib/noteCardFormat';
+import { extractNotePreview } from '../../lib/tiptapText';
 import type { Note } from '../../types/note.types';
 
 export function NoteCard({ note }: { note: Note }) {
@@ -12,7 +13,7 @@ export function NoteCard({ note }: { note: Note }) {
   const deleteNote = useDeleteNote();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const preview = typeof note.content === 'string' ? note.content : '';
+  const preview = extractNotePreview(note.content);
   const videoAsset = note.assets?.find((asset) => asset.kind === 'VIDEO');
   const thumbnailUrl = resolveAssetUrl(videoAsset?.thumbnailUrl);
 

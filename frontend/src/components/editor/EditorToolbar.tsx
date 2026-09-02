@@ -22,6 +22,28 @@ function ToolbarButton({ onClick, isActive, label, children }: ToolbarButtonProp
   );
 }
 
+const DEFAULT_TEXT_COLOR = '#111827';
+
+function TextColorPicker({ editor }: { editor: Editor }) {
+  const activeColor = (editor.getAttributes('textStyle').color as string | undefined) || '';
+
+  return (
+    <label className="editor-toolbar-color-btn" aria-label="Text color">
+      <span className="editor-toolbar-color-icon">
+        A
+        <span className="editor-toolbar-color-bar" style={{ backgroundColor: activeColor || DEFAULT_TEXT_COLOR }} />
+      </span>
+      <input
+        type="color"
+        className="editor-toolbar-color-input"
+        value={activeColor || DEFAULT_TEXT_COLOR}
+        onChange={(event) => editor.chain().focus().setColor(event.target.value).run()}
+        aria-label="Pick text color"
+      />
+    </label>
+  );
+}
+
 export function EditorToolbar({ editor, trailing }: { editor: Editor; trailing?: ReactNode }) {
   return (
     <div className="editor-toolbar" role="toolbar" aria-label="Text formatting">
@@ -76,6 +98,13 @@ export function EditorToolbar({ editor, trailing }: { editor: Editor; trailing?:
         onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
       >
         H3
+      </ToolbarButton>
+
+      <span className="editor-toolbar-divider" aria-hidden="true" />
+
+      <TextColorPicker editor={editor} />
+      <ToolbarButton label="Remove text color" onClick={() => editor.chain().focus().unsetColor().run()}>
+        ⊘
       </ToolbarButton>
 
       <span className="editor-toolbar-divider" aria-hidden="true" />

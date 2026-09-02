@@ -1,4 +1,6 @@
+import Color from '@tiptap/extension-color';
 import Placeholder from '@tiptap/extension-placeholder';
+import TextStyle from '@tiptap/extension-text-style';
 import Underline from '@tiptap/extension-underline';
 import { EditorContent, useEditor } from '@tiptap/react';
 import type { Content } from '@tiptap/react';
@@ -16,7 +18,13 @@ interface TiptapEditorProps {
 
 export function TiptapEditor({ content, onUpdate, toolbarEnd }: TiptapEditorProps) {
   const editor = useEditor({
-    extensions: [StarterKit, Underline, Placeholder.configure({ placeholder: 'Start writing…' })],
+    extensions: [
+      StarterKit,
+      Underline,
+      TextStyle,
+      Color,
+      Placeholder.configure({ placeholder: 'Start writing…' }),
+    ],
     content,
     editorProps: {
       attributes: { 'aria-label': 'Note content', role: 'textbox' },

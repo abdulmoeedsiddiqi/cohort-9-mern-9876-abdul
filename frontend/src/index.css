@@ -1043,6 +1043,51 @@ body {
   color: var(--color-accent-strong);
 }
 
+.editor-toolbar-color-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 4px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.editor-toolbar-color-btn:hover {
+  background: var(--color-bg);
+}
+
+.editor-toolbar-color-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 1;
+  color: var(--color-text);
+  pointer-events: none;
+}
+
+.editor-toolbar-color-bar {
+  width: 14px;
+  height: 3px;
+  margin-top: 3px;
+  border-radius: 1px;
+}
+
+.editor-toolbar-color-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+}
+
 .tiptap-content {
   padding: 14px;
 }

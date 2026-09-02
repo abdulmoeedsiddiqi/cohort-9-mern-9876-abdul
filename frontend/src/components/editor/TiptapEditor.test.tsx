@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { TiptapEditor } from './TiptapEditor';
@@ -35,6 +35,25 @@ describe('TiptapEditor', () => {
     await user.click(screen.getByLabelText('Heading 1'));
 
     expect(screen.getByLabelText('Heading 1')).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('applies a text color and can remove it again', async () => {
+    const user = userEvent.setup();
+    render(<TiptapEditor content={null} onUpdate={jest.fn()} />);
+
+    const editor = screen.getByRole('textbox', { name: 'Note content' });
+    await user.click(editor);
+    await user.type(editor, 'colored text');
+    await user.keyboard('{Control>}a{/Control}');
+
+    const colorInput = screen.getByLabelText('Pick text color') as HTMLInputElement;
+    fireEvent.change(colorInput, { target: { value: '#ff0000' } });
+
+    expect(colorInput.value.toLowerCase()).toBe('#ff0000');
+
+    await user.click(screen.getByLabelText('Remove text color'));
+
+    expect(colorInput.value.toLowerCase()).toBe('#111827');
   });
 
   it('reports the live word count as the user types', async () => {

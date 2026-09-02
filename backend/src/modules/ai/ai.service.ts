@@ -7,11 +7,11 @@ import { ApiError } from '../../utils/ApiError';
 let client: OpenAI | null = null;
 
 function getClient(): OpenAI {
-  if (!env.grokApiKey) {
+  if (!env.aiApiKey) {
     throw ApiError.badRequest('AI summarization is not configured on this server');
   }
   if (!client) {
-    client = new OpenAI({ apiKey: env.grokApiKey, baseURL: env.grokBaseUrl });
+    client = new OpenAI({ apiKey: env.aiApiKey, baseURL: env.aiBaseUrl });
   }
   return client;
 }
@@ -29,7 +29,7 @@ export async function summarizeText(text: string, client: OpenAI = getClient()):
 
   try {
     const response = await client.chat.completions.create({
-      model: env.grokModel,
+      model: env.aiModel,
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: trimmed.slice(0, MAX_INPUT_CHARS) },
@@ -47,7 +47,7 @@ export async function summarizeText(text: string, client: OpenAI = getClient()):
     if (err instanceof ApiError) {
       throw err;
     }
-    logger.error({ err }, 'Grok summarization request failed');
+    logger.error({ err }, 'AI summarization request failed');
     throw ApiError.internal('Could not generate a summary right now. Please try again.');
   }
 }

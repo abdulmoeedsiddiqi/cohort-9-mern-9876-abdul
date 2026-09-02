@@ -60,8 +60,8 @@ describe('ai.service', () => {
     });
 
     it('rejects with a clear 400 when no API key is configured and no client is injected', async () => {
-      const original = env.grokApiKey;
-      env.grokApiKey = undefined;
+      const original = env.aiApiKey;
+      env.aiApiKey = undefined;
 
       try {
         await summarizeText('Some note content');
@@ -69,7 +69,7 @@ describe('ai.service', () => {
       } catch (err) {
         expect((err as { statusCode: number }).statusCode).to.equal(400);
       } finally {
-        env.grokApiKey = original;
+        env.aiApiKey = original;
       }
     });
   });

@@ -10,9 +10,12 @@ interface Env {
   jwtSecret: string;
   jwtExpiresInDays: number;
   cookieName: string;
-  grokApiKey: string | undefined;
-  grokBaseUrl: string;
-  grokModel: string;
+  // Provider-agnostic: any OpenAI-compatible chat completions API works here
+  // (xAI/Grok, OpenAI, Groq, Gemini, ...). Defaults assume xAI since that's
+  // this project's originally chosen provider; override all three to switch.
+  aiApiKey: string | undefined;
+  aiBaseUrl: string;
+  aiModel: string;
 }
 
 export const env: Env = {
@@ -23,7 +26,7 @@ export const env: Env = {
   jwtSecret: process.env.JWT_SECRET ?? 'dev-only-insecure-secret-change-me',
   jwtExpiresInDays: Number(process.env.JWT_EXPIRES_IN_DAYS ?? 7),
   cookieName: process.env.COOKIE_NAME ?? 'auth_token',
-  grokApiKey: process.env.GROK_API_KEY,
-  grokBaseUrl: process.env.GROK_BASE_URL ?? 'https://api.x.ai/v1',
-  grokModel: process.env.GROK_MODEL ?? 'grok-4-fast-non-reasoning',
+  aiApiKey: process.env.AI_API_KEY,
+  aiBaseUrl: process.env.AI_BASE_URL ?? 'https://api.x.ai/v1',
+  aiModel: process.env.AI_MODEL ?? 'grok-4-fast-non-reasoning',
 };

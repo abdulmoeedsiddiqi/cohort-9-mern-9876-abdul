@@ -282,7 +282,7 @@ describe('notes controller (integration)', () => {
 
     const res = await request(app).post(`/notes/${created.body.note.id}/summarize`).set('Cookie', cookie);
 
-    // The test environment has no GROK_API_KEY configured, so this exercises the
+    // The test environment has no AI_API_KEY configured, so this exercises the
     // real "not configured" guard rather than calling the actual Grok API.
     expect(res.status).to.equal(400);
     expect(res.body.error.message).to.match(/not configured/i);

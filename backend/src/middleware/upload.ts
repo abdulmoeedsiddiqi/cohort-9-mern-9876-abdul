@@ -1,3 +1,5 @@
+import path from 'path';
+
 import { NextFunction, Request, Response } from 'express';
 import multer from 'multer';
 
@@ -26,6 +28,35 @@ const uploader = multer({
 
 export function uploadVideo(req: Request, res: Response, next: NextFunction): void {
   uploader(req, res, (err: unknown) => {
+    if (!err) {
+      next();
+      return;
+    }
+    if (err instanceof multer.MulterError) {
+      next(ApiError.badRequest(`Upload error: ${err.message}`));
+      return;
+    }
+    next(ApiError.badRequest(err instanceof Error ? err.message : 'Invalid upload'));
+  });
+}
+
+const MAX_IMPORT_FILE_BYTES = 20 * 1024 * 1024;
+const ALLOWED_IMPORT_EXTENSIONS = ['.txt', '.pdf', '.docx'];
+
+const importFileUploader = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: MAX_IMPORT_FILE_BYTES },
+  fileFilter: (_req, file, cb) => {
+    if (!ALLOWED_IMPORT_EXTENSIONS.includes(path.extname(file.originalname).toLowerCase())) {
+      cb(new Error('File must be a .txt, .pdf, or .docx file'));
+      return;
+    }
+    cb(null, true);
+  },
+}).single('file');
+
+export function uploadImportFile(req: Request, res: Response, next: NextFunction): void {
+  importFileUploader(req, res, (err: unknown) => {
     if (!err) {
       next();
       return;

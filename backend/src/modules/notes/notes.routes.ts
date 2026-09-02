@@ -1,7 +1,7 @@
 import { Router } from 'express';
 
 import { authenticate } from '../../middleware/authenticate';
-import { uploadVideo } from '../../middleware/upload';
+import { uploadImportFile, uploadVideo } from '../../middleware/upload';
 import * as notesAssetsController from './notes-assets.controller';
 import * as notesController from './notes.controller';
 
@@ -14,6 +14,7 @@ notesRouter.get('/export', notesController.exportNotes);
 notesRouter.get('/trash', notesController.listTrash);
 notesRouter.post('/', notesController.create);
 notesRouter.post('/import', notesController.importNotes);
+notesRouter.post('/import/file', uploadImportFile, notesController.importFile);
 notesRouter.get('/:id', notesController.getOne);
 notesRouter.patch('/:id', notesController.update);
 notesRouter.post('/:id/restore', notesController.restore);

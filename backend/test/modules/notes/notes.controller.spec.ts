@@ -238,6 +238,42 @@ describe('notes controller (integration)', () => {
     expect(res.status).to.equal(401);
   });
 
+  it('imports a single note from an uploaded .txt file', async () => {
+    const res = await request(app)
+      .post('/notes/import/file')
+      .set('Cookie', cookie)
+      .attach('file', Buffer.from('Line one\nLine two', 'utf-8'), {
+        filename: 'My Meeting Notes.txt',
+        contentType: 'text/plain',
+      });
+
+    expect(res.status).to.equal(201);
+    expect(res.body.imported).to.equal(1);
+    expect(res.body.note.title).to.equal('My Meeting Notes');
+    expect(res.body.note.content).to.equal('Line one\nLine two');
+  });
+
+  it('rejects a file-import request with no file attached', async () => {
+    const res = await request(app).post('/notes/import/file').set('Cookie', cookie);
+    expect(res.status).to.equal(400);
+  });
+
+  it('rejects a file-import request with an unsupported file extension', async () => {
+    const res = await request(app)
+      .post('/notes/import/file')
+      .set('Cookie', cookie)
+      .attach('file', Buffer.from('data'), { filename: 'notes.exe', contentType: 'application/octet-stream' });
+
+    expect(res.status).to.equal(400);
+  });
+
+  it('rejects an unauthenticated file-import request', async () => {
+    const res = await request(app)
+      .post('/notes/import/file')
+      .attach('file', Buffer.from('hello'), { filename: 'notes.txt', contentType: 'text/plain' });
+    expect(res.status).to.equal(401);
+  });
+
   it('gets a single note by id', async () => {
     const created = await request(app).post('/notes').set('Cookie', cookie).send({ title: 'Solo note' });
 

@@ -4,6 +4,7 @@ import { ApiError } from '../../utils/ApiError';
 import { asyncHandler } from '../../utils/asyncHandler';
 import { toAssetResponse } from './notes-assets.controller';
 import { toDocxBuffer, toPdfBuffer, toPlainText } from './notes-export-formats';
+import { extractTextFromFile, titleFromFilename } from './notes-import-formats';
 import * as notesService from './notes.service';
 import {
   createNoteSchema,
@@ -75,6 +76,25 @@ export const importNotes = asyncHandler(async (req: Request, res: Response) => {
 
   const result = await notesService.importNotes(req.user!.id, parsed.data.notes);
   res.status(201).json(result);
+});
+
+export const importFile = asyncHandler(async (req: Request, res: Response) => {
+  const file = req.file as Express.Multer.File | undefined;
+  if (!file) {
+    throw ApiError.badRequest('No file provided');
+  }
+
+  const text = await extractTextFromFile(file.buffer, file.originalname);
+  if (!text.trim()) {
+    throw ApiError.badRequest('The uploaded file has no readable text');
+  }
+
+  const note = await notesService.createNote(req.user!.id, {
+    title: titleFromFilename(file.originalname),
+    content: text,
+  });
+
+  res.status(201).json({ note, imported: 1 });
 });
 
 export const create = asyncHandler(async (req: Request, res: Response) => {

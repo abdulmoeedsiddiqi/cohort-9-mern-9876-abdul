@@ -127,6 +127,7 @@ body {
 
 .topbar-search input:disabled {
   cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .topbar-new-note {

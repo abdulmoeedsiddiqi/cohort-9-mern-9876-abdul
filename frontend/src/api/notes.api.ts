@@ -22,6 +22,7 @@ export interface ListNotesParams {
   page?: number;
   pageSize?: number;
   filter?: NoteListFilter;
+  q?: string;
 }
 
 export async function listNotes(params: ListNotesParams = {}): Promise<NotesListResult> {

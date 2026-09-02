@@ -80,6 +80,18 @@ describe('NoteEditorPage', () => {
     expect(await screen.findByText('All notes screen')).toBeInTheDocument();
   });
 
+  it('tints the editor surface live as soon as a color swatch is picked', async () => {
+    const user = userEvent.setup();
+    const { container } = renderAt('/notes/new');
+
+    expect(container.querySelector('.tiptap-editor')).toHaveClass('note-editor-surface-yellow');
+
+    await user.click(screen.getByLabelText('Purple'));
+
+    expect(container.querySelector('.tiptap-editor')).toHaveClass('note-editor-surface-purple');
+    expect(container.querySelector('.tiptap-editor')).not.toHaveClass('note-editor-surface-yellow');
+  });
+
   it('shows a validation error when saving without a title', async () => {
     const user = userEvent.setup();
     renderAt('/notes/new');

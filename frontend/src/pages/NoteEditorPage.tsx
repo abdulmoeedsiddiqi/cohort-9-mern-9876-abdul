@@ -186,6 +186,7 @@ export function NoteEditorPage() {
               setContent(json);
               setWordCount(count);
             }}
+            noteColor={color}
             toolbarEnd={
               isEditing && (
                 <button

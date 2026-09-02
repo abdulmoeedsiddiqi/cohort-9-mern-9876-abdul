@@ -1127,6 +1127,38 @@ body {
   margin: 0 0 0.6em;
 }
 
+.note-editor-surface-yellow {
+  background: var(--note-color-yellow);
+}
+.note-editor-surface-blue {
+  background: var(--note-color-blue);
+}
+.note-editor-surface-green {
+  background: var(--note-color-green);
+}
+.note-editor-surface-purple {
+  background: var(--note-color-purple);
+}
+.note-editor-surface-pink {
+  background: var(--note-color-pink);
+}
+.note-editor-surface-orange {
+  background: var(--note-color-orange);
+}
+.note-editor-surface-red {
+  background: var(--note-color-red);
+}
+
+:root[data-theme='dark'] .note-editor-surface-yellow .tiptap-content .ProseMirror,
+:root[data-theme='dark'] .note-editor-surface-green .tiptap-content .ProseMirror {
+  color: var(--note-card-text-dark);
+}
+
+:root[data-theme='dark'] .note-editor-surface-yellow .tiptap-content .ProseMirror p.is-editor-empty:first-child::before,
+:root[data-theme='dark'] .note-editor-surface-green .tiptap-content .ProseMirror p.is-editor-empty:first-child::before {
+  color: color-mix(in srgb, var(--note-card-text-dark) 60%, transparent);
+}
+
 .video-recorder {
   display: flex;
   flex-direction: column;

@@ -14,9 +14,10 @@ interface TiptapEditorProps {
   content: Content;
   onUpdate: (json: object, wordCount: number) => void;
   toolbarEnd?: ReactNode;
+  noteColor?: string;
 }
 
-export function TiptapEditor({ content, onUpdate, toolbarEnd }: TiptapEditorProps) {
+export function TiptapEditor({ content, onUpdate, toolbarEnd, noteColor }: TiptapEditorProps) {
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -39,7 +40,7 @@ export function TiptapEditor({ content, onUpdate, toolbarEnd }: TiptapEditorProp
   }
 
   return (
-    <div className="tiptap-editor">
+    <div className={`tiptap-editor${noteColor ? ` note-editor-surface-${noteColor}` : ''}`}>
       <EditorToolbar editor={editor} trailing={toolbarEnd} />
       <EditorContent editor={editor} className="tiptap-content" />
     </div>

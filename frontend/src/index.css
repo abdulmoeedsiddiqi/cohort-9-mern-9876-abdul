@@ -38,13 +38,14 @@
   --color-topbar-bg: #1e1b4b;
   --color-topbar-text: #f5f5f7;
   --note-card-text: #f8fafc;
-  --note-color-yellow: #854d0e;
-  --note-color-blue: #1d4ed8;
-  --note-color-green: #065f46;
-  --note-color-purple: #5b21b6;
-  --note-color-pink: #9d174d;
-  --note-color-orange: #9a3412;
-  --note-color-red: #991b1b;
+  --note-card-text-dark: #1a1a2e;
+  --note-color-yellow: #eab308;
+  --note-color-blue: #3b63e0;
+  --note-color-green: #1f9d55;
+  --note-color-purple: #7c3aed;
+  --note-color-pink: #e0489a;
+  --note-color-orange: #b8631f;
+  --note-color-red: #e2542a;
 }
 
 *,
@@ -180,13 +181,13 @@ body {
 }
 
 .sidebar-link.active {
-  background: color-mix(in srgb, var(--color-accent) 18%, transparent);
-  color: var(--color-text);
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-strong));
+  color: #1a1a2e;
 }
 
 .sidebar-link.active .sidebar-count {
-  color: var(--color-accent-strong);
-  font-weight: 600;
+  color: #1a1a2e;
+  font-weight: 700;
 }
 
 .dashboard-main {
@@ -517,6 +518,11 @@ body {
 }
 .note-card-red {
   background: var(--note-color-red);
+}
+
+:root[data-theme='dark'] .note-card-yellow,
+:root[data-theme='dark'] .note-card-green {
+  color: var(--note-card-text-dark);
 }
 
 .note-card-header {

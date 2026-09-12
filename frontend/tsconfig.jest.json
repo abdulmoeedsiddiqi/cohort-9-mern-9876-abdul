@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "ignoreDeprecations": "6.0",
+    "module": "commonjs",
+    "moduleResolution": "node10",
+    "verbatimModuleSyntax": false,
+    "allowImportingTsExtensions": false,
+    "noEmit": false,
+    "isolatedModules": true,
+    "types": ["jest", "node"]
+  },
+  "include": ["src", "jest.setup.ts"],
+  "exclude": []
+}
